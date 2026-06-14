@@ -1,0 +1,1 @@
+<script setup lang='ts'>import EmptyPage from '@/components/shared/EmptyPage.vue'</script><template><EmptyPage title='Invoices' description='Track payments and manage customer invoices.' /></template>

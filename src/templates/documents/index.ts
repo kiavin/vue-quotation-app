@@ -1,0 +1,1 @@
+export { default as QuotationTemplateBasic } from './QuotationTemplateBasic.vue'

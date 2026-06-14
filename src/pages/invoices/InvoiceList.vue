@@ -1,0 +1,100 @@
+<script setup lang="ts">
+import { onMounted } from 'vue'
+import { useRouter } from 'vue-router'
+import { useInvoicesStore } from '@/stores/invoices'
+import { Plus, Search, Eye } from 'lucide-vue-next'
+import { Button } from '@/components/ui/button'
+import { Input } from '@/components/ui/input'
+import { 
+  Table, 
+  TableHeader, 
+  TableBody, 
+  TableHead, 
+  TableRow, 
+  TableCell 
+} from '@/components/ui/table'
+import InvoiceStatusBadge from '@/components/shared/InvoiceStatusBadge.vue'
+
+const router = useRouter()
+const invoicesStore = useInvoicesStore()
+
+onMounted(async () => {
+  await invoicesStore.fetchInvoices()
+})
+
+const formatCurrency = (val: number) => {
+  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val)
+}
+
+const formatDate = (date?: string) => {
+  if (!date) return ''
+  return new Date(date).toLocaleDateString()
+}
+
+const handleView = (id?: string) => {
+  if (!id) return
+  router.push(`/invoices/${id}`)
+}
+</script>
+
+<template>
+  <div class="space-y-6">
+    <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div>
+        <h1 class="text-3xl font-bold tracking-tight text-slate-900">Invoices</h1>
+        <p class="text-slate-500">Manage and track your customer payments.</p>
+      </div>
+      <Button @click="router.push('/quotations')" variant="outline" class="gap-2">
+        <Plus class="w-4 h-4" />
+        New from Quotation
+      </Button>
+    </div>
+
+    <div class="flex items-center gap-4">
+      <div class="relative flex-1 max-w-sm">
+        <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+        <Input placeholder="Search invoices..." class="pl-10" />
+      </div>
+    </div>
+
+    <div class="border rounded-lg bg-white overflow-hidden">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Invoice #</TableHead>
+            <TableHead>Customer</TableHead>
+            <TableHead>Issue Date</TableHead>
+            <TableHead>Due Date</TableHead>
+            <TableHead>Amount</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead class="text-right">Actions</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          <TableRow v-for="invoice in invoicesStore.invoices" :key="invoice.id" class="cursor-pointer hover:bg-slate-50" @click="handleView(invoice.id)">
+            <TableCell class="font-medium">{{ invoice.number }}</TableCell>
+            <TableCell>{{ invoice.customers?.name }}</TableCell>
+            <TableCell>{{ formatDate(invoice.issue_date) }}</TableCell>
+            <TableCell>{{ formatDate(invoice.due_date) }}</TableCell>
+            <TableCell>{{ formatCurrency(invoice.total) }}</TableCell>
+            <TableCell>
+              <InvoiceStatusBadge :status="invoice.status" />
+            </TableCell>
+            <TableCell class="text-right" @click.stop>
+              <div class="flex justify-end gap-2">
+                <Button variant="ghost" size="icon" @click="handleView(invoice.id)">
+                  <Eye class="w-4 h-4" />
+                </Button>
+              </div>
+            </TableCell>
+          </TableRow>
+          <TableRow v-if="invoicesStore.invoices.length === 0">
+            <TableCell colspan="7" class="h-32 text-center text-slate-500">
+              No invoices found. Convert a quotation to get started.
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+    </div>
+  </div>
+</template>
