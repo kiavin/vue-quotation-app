@@ -64,8 +64,8 @@ const handlePrint = () => {
     <!-- Document Content -->
     <div v-if="!isLoading && invoice" class="py-8 print:py-0">
       <InvoiceTemplateBasic 
-        :data="invoice" 
-        :branding="invoice.branding_snapshot" 
+        :data="(invoice as any)" 
+        :branding="(invoice as any).branding_snapshot" 
       />
     </div>
     
