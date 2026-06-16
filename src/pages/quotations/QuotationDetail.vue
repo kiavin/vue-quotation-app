@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { quotationService } from '@/services/quotationService'
+import { useInvoicesStore } from '@/stores/invoices'
+
+// Icons
 import { 
   ChevronLeft, 
   Edit, 
@@ -16,32 +19,80 @@ import {
   Printer,
   CreditCard,
   Loader2
-  } from 'lucide-vue-next'
-  import { Button } from '@/components/ui/button'
-  import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-  import QuotationStatusBadge from '@/components/shared/QuotationStatusBadge.vue'
-  import { 
+} from 'lucide-vue-next'
+
+// Components
+import { Button } from '@/components/ui/button'
+import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import QuotationStatusBadge from '@/components/shared/QuotationStatusBadge.vue'
+import { 
   Table, 
   TableHeader, 
   TableBody, 
   TableHead, 
   TableRow, 
   TableCell 
-  } from '@/components/ui/table'
-  import { useInvoicesStore } from '@/stores/invoices'
+} from '@/components/ui/table'
 
-  const router = useRouter()
-  const route = useRoute()
-  const invoicesStore = useInvoicesStore()
-  const quotation = ref<Quotation | null>(null)
-  const isLoading = ref(true)
-  const isConverting = ref(false)
+// Ideally, this interface should be exported from a central `@/types` file.
+interface Quotation {
+  id: string
+  organization_id: string
+  customer_id: string
+  number: string
+  status: 'draft' | 'sent' | 'approved' | 'rejected'
+  date: string
+  expiry_date?: string 
+  customers?: {
+    name: string
+    address?: string | null
+  }
+  items: Array<{
+    id: string
+    name: string
+    quantity: number
+    price: number
+    total: number
+  }>
+  notes?: string 
+  subtotal: number
+  transport_charge: number
+  tax_rate: number
+  tax_amount: number
+  total: number
+}
 
+const router = useRouter()
+const route = useRoute()
+const invoicesStore = useInvoicesStore()
+
+// State
+const quotation = ref<Quotation | null>(null)
+const isLoading = ref(true)
+const isConverting = ref(false)
+
+// Computed Properties for UI Logic
+const canConvertToInvoice = computed(() => {
+  return quotation.value?.status === 'approved' || quotation.value?.status === 'sent'
+})
+
+const canApproveOrReject = computed(() => {
+  return quotation.value?.status === 'sent'
+})
+
+const canMarkAsSent = computed(() => {
+  return quotation.value?.status === 'draft'
+})
+
+// Lifecycle
 onMounted(async () => {
   const id = route.params.id as string
   try {
+    isLoading.value = true
     quotation.value = await quotationService.getQuotationById(id)
   } catch (error) {
+    console.error('Failed to load quotation:', error)
+    // TODO: Replace with a toast notification
     alert('Failed to load quotation')
     router.push('/quotations')
   } finally {
@@ -49,6 +100,7 @@ onMounted(async () => {
   }
 })
 
+// Utilities
 const formatCurrency = (val: number) => {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val)
 }
@@ -57,23 +109,30 @@ const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString()
 }
 
+// Actions
 const handleStatusChange = async (status: Quotation['status']) => {
   if (!quotation.value) return
+  
   try {
     await quotationService.updateStatus(quotation.value.id, status)
     quotation.value.status = status
   } catch (error) {
+    console.error(`Failed to update status to ${status}:`, error)
+    // TODO: Replace with a toast notification
     alert('Failed to update status')
   }
 }
 
 const handleConvertToInvoice = async () => {
   if (!quotation.value) return
-  isConverting.value = true
+  
   try {
+    isConverting.value = true
     const invoice = await invoicesStore.createFromQuotation(quotation.value)
     router.push(`/invoices/${invoice.id}`)
   } catch (error) {
+    console.error('Failed to convert to invoice:', error)
+    // TODO: Replace with a toast notification
     alert('Failed to convert to invoice')
   } finally {
     isConverting.value = false
@@ -83,7 +142,6 @@ const handleConvertToInvoice = async () => {
 
 <template>
   <div class="space-y-6">
-    <!-- Header -->
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
       <div class="flex items-center gap-4">
         <Button variant="ghost" size="icon" @click="router.push('/quotations')">
@@ -97,25 +155,52 @@ const handleConvertToInvoice = async () => {
           </div>
         </div>
       </div>
+
       <div v-if="quotation" class="flex items-center gap-3">
-        <Button variant="default" class="gap-2" @click="handleConvertToInvoice" v-if="quotation.status === 'approved' || quotation.status === 'sent'" :disabled="isConverting">
+        <Button 
+          v-if="canConvertToInvoice"
+          variant="default" 
+          class="gap-2" 
+          :disabled="isConverting"
+          @click="handleConvertToInvoice" 
+        >
           <Loader2 v-if="isConverting" class="w-4 h-4 animate-spin" />
           <CreditCard v-else class="w-4 h-4" />
           Convert to Invoice
         </Button>
-        <Button variant="outline" class="gap-2" @click="handleStatusChange('sent')" v-if="quotation.status === 'draft'">
+        
+        <Button 
+          v-if="canMarkAsSent"
+          variant="outline" 
+          class="gap-2" 
+          @click="handleStatusChange('sent')" 
+        >
           <Send class="w-4 h-4" />
           Mark as Sent
         </Button>
-        <Button variant="outline" class="gap-2 text-green-600 hover:text-green-700 hover:bg-green-50" @click="handleStatusChange('approved')" v-if="quotation.status === 'sent'">
+        
+        <Button 
+          v-if="canApproveOrReject"
+          variant="outline" 
+          class="gap-2 text-green-600 hover:text-green-700 hover:bg-green-50" 
+          @click="handleStatusChange('approved')" 
+        >
           <CheckCircle class="w-4 h-4" />
           Approve
         </Button>
-        <Button variant="outline" class="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50" @click="handleStatusChange('rejected')" v-if="quotation.status === 'sent'">
+        
+        <Button 
+          v-if="canApproveOrReject"
+          variant="outline" 
+          class="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50" 
+          @click="handleStatusChange('rejected')" 
+        >
           <XCircle class="w-4 h-4" />
           Reject
         </Button>
+
         <div class="w-px h-8 bg-slate-200 mx-1"></div>
+        
         <Button variant="outline" class="gap-2" @click="router.push(`/quotations/${quotation.id}/edit`)">
           <Edit class="w-4 h-4" />
           Edit
@@ -132,7 +217,6 @@ const handleConvertToInvoice = async () => {
     </div>
 
     <div v-if="!isLoading && quotation" class="grid gap-6 lg:grid-cols-3">
-      <!-- Details & Items -->
       <div class="lg:col-span-2 space-y-6">
         <Card>
           <CardHeader>
@@ -144,14 +228,14 @@ const handleConvertToInvoice = async () => {
                 <User class="w-5 h-5 text-slate-400 mt-0.5" />
                 <div>
                   <p class="text-xs font-semibold text-slate-500 uppercase">Customer</p>
-                  <p class="text-slate-900 font-medium">{{ quotation.customers?.name }}</p>
+                  <p class="text-slate-900 font-medium">{{ quotation.customers?.name || 'Unknown Customer' }}</p>
                 </div>
               </div>
               <div class="flex items-start gap-3">
                 <MapPin class="w-5 h-5 text-slate-400 mt-0.5" />
                 <div>
                   <p class="text-xs font-semibold text-slate-500 uppercase">Billing Address</p>
-                  <p class="text-slate-900 whitespace-pre-line">{{ quotation.customers?.address || 'No address' }}</p>
+                  <p class="text-slate-900 whitespace-pre-line">{{ quotation.customers?.address || 'No address provided' }}</p>
                 </div>
               </div>
             </div>
@@ -167,7 +251,9 @@ const handleConvertToInvoice = async () => {
                 <Clock class="w-5 h-5 text-slate-400 mt-0.5" />
                 <div>
                   <p class="text-xs font-semibold text-slate-500 uppercase">Valid Until</p>
-                  <p class="text-slate-900 font-medium">{{ quotation.expiry_date ? formatDate(quotation.expiry_date) : 'No expiry date' }}</p>
+                  <p class="text-slate-900 font-medium">
+                    {{ quotation.expiry_date ? formatDate(quotation.expiry_date) : 'No expiry date' }}
+                  </p>
                 </div>
               </div>
             </div>
@@ -210,7 +296,6 @@ const handleConvertToInvoice = async () => {
         </Card>
       </div>
 
-      <!-- Summary -->
       <div class="space-y-6">
         <Card>
           <CardHeader>
@@ -238,7 +323,8 @@ const handleConvertToInvoice = async () => {
       </div>
     </div>
 
-    <div v-else-if="isLoading" class="text-center p-12">
+    <div v-else-if="isLoading" class="flex flex-col items-center justify-center p-12 space-y-4">
+      <Loader2 class="w-8 h-8 animate-spin text-slate-400" />
       <p class="text-slate-500">Loading quotation details...</p>
     </div>
   </div>
