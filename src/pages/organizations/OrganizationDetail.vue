@@ -2,7 +2,6 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { organizationService } from '@/services/organizationService'
-import { useAuthStore } from '@/stores/auth'
 import { ChevronLeft, Loader2, Building, Mail, Phone, Calendar } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
