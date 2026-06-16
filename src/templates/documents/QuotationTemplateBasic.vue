@@ -3,6 +3,7 @@ import type { BrandingSnapshot } from '@/types/organization'
 import type { Quotation, QuotationItem } from '@/services/quotationService'
 import { ref } from 'vue'
 import SendEmailModal from '@/components/SendEmailModal.vue'
+// @ts-ignore - html2pdf.js does not provide native TS declarations
 import html2pdf from 'html2pdf.js'
 
 export interface Props {
@@ -13,7 +14,7 @@ export interface Props {
 
 const props = defineProps<Props>()
 
-const formatDate = (dateString: string) => {
+const formatDate = (dateString?: string) => {
   if (!dateString) return ''
   return new Date(dateString).toLocaleDateString()
 }
@@ -21,7 +22,7 @@ const formatDate = (dateString: string) => {
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: props.branding.currency || 'USD'
+    currency: (props.branding as any).currency || 'USD'
   }).format(amount)
 }
 
@@ -37,9 +38,9 @@ const prepareEmail = async () => {
     const opt = {
       margin: 0,
       filename: `Quotation_${props.data.number}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
+      image: { type: 'jpeg' as const, quality: 0.98 },
       html2canvas: { scale: 2 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
     }
     generatedPdfBlob.value = await html2pdf().set(opt).from(documentRef.value).output('blob')
     isModalOpen.value = true
