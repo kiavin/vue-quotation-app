@@ -10,7 +10,7 @@ export interface Props {
 
 const props = defineProps<Props>()
 
-const formatDate = (dateString: string) => {
+const formatDate = (dateString?: string) => {
   if (!dateString) return ''
   return new Date(dateString).toLocaleDateString()
 }
@@ -18,7 +18,7 @@ const formatDate = (dateString: string) => {
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
-    currency: props.branding.currency || 'USD'
+    currency: (props.branding as any).currency || 'USD'
   }).format(amount)
 }
 </script>
