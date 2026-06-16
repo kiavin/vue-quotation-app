@@ -42,15 +42,18 @@ const formatDate = (date: string) => {
   return new Date(date).toLocaleDateString()
 }
 
-const handleView = (id: string) => {
+const handleView = (id?: string) => {
+  if (!id) return
   router.push(`/quotations/${id}`)
 }
 
-const handleEdit = (id: string) => {
+const handleEdit = (id?: string) => {
+  if (!id) return
   router.push(`/quotations/${id}/edit`)
 }
 
-const handleDelete = async (id: string) => {
+const handleDelete = async (id?: string) => {
+  if (!id) return
   if (confirm('Are you sure you want to delete this quotation?')) {
     try {
       await quotationService.deleteQuotation(id)
