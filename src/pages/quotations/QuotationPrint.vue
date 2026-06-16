@@ -10,6 +10,7 @@ import { pdfService } from '@/services/pdfService'
 import type { Quotation } from '@/services/quotationService'
 
 const route = useRoute()
+const router = useRouter()
 const quotation = ref<Quotation | null>(null)
 const isLoading = ref(true)
 
@@ -64,8 +65,8 @@ const handlePrint = () => {
     <!-- Document Content -->
     <div v-if="!isLoading && quotation" class="py-8 print:py-0">
       <QuotationTemplateBasic 
-        :data="quotation" 
-        :branding="quotation.branding_snapshot" 
+        :data="(quotation as any)" 
+        :branding="(quotation as any).branding_snapshot" 
       />
     </div>
     
