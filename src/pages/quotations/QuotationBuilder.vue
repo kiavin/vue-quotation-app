@@ -19,6 +19,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import html2pdf from 'html2pdf.js'
 
 const router = useRouter()
 const route = useRoute()
@@ -94,6 +95,90 @@ const handleSave = async (status: typeof form.status = 'draft') => {
     }
 
     await quotationStore.saveQuotation(quotationData as Quotation)
+
+    if (status === 'sent') {
+      const customer = customerStore.customers.find(c => c.id === form.customer_id)
+      if (customer && customer.email) {
+        try {
+          const element = document.createElement('div')
+          element.innerHTML = `
+            <div style="padding: 40px; font-family: Arial, sans-serif; color: #1B1B1B;">
+              <h1 style="color: #0F766E; margin-bottom: 5px;">Quotation ${form.number}</h1>
+              <p style="color: #6B7280; margin-top: 0;">Date: ${form.date}</p>
+              <div style="margin-top: 30px; margin-bottom: 30px;">
+                <h3 style="margin-bottom: 5px;">Prepared for:</h3>
+                <p style="margin-top: 0;"><strong>${customer.name}</strong><br/>${customer.email}</p>
+              </div>
+              <table style="width: 100%; border-collapse: collapse;">
+                <thead>
+                  <tr style="border-bottom: 2px solid #E2E8F0; background-color: #F8F7F4;">
+                    <th style="text-align: left; padding: 12px 8px;">Description</th>
+                    <th style="text-align: center; padding: 12px 8px;">Qty</th>
+                    <th style="text-align: right; padding: 12px 8px;">Price</th>
+                    <th style="text-align: right; padding: 12px 8px;">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${quotationStore.currentItems.map(item => `
+                    <tr style="border-bottom: 1px solid #E2E8F0;">
+                      <td style="padding: 12px 8px;">${item.name}</td>
+                      <td style="text-align: center; padding: 12px 8px;">${item.quantity}</td>
+                      <td style="text-align: right; padding: 12px 8px;">$${item.price.toFixed(2)}</td>
+                      <td style="text-align: right; padding: 12px 8px;">$${(item.quantity * item.price).toFixed(2)}</td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+              <div style="margin-top: 30px; border-top: 2px solid #E2E8F0; padding-top: 20px; text-align: right;">
+                <p style="margin: 5px 0;">Subtotal: $${quotationStore.subtotal.toFixed(2)}</p>
+                <p style="margin: 5px 0;">Transport: $${quotationStore.transportCharge.toFixed(2)}</p>
+                <p style="margin: 5px 0;">Tax (${quotationStore.taxRate * 100}%): $${quotationStore.taxAmount.toFixed(2)}</p>
+                <h2 style="color: #0F766E; margin-top: 15px;">Grand Total: $${quotationStore.grandTotal.toFixed(2)}</h2>
+              </div>
+            </div>
+          `
+
+          const opt = {
+            margin: 0,
+            filename: `${form.number}.pdf`,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+          }
+          
+          const pdfBase64DataUri = await html2pdf().set(opt).from(element).output('datauristring')
+          const attachmentBase64 = pdfBase64DataUri.split('base64,')[1]
+
+          const emailResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-quotation`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${import.meta.env.VITE_SUPABASE_ANON_KEY}`
+            },
+            body: JSON.stringify({
+              to: customer.email,
+              subject: `Quotation ${form.number} from CQIS`,
+              message: `Dear ${customer.name},\n\nPlease find attached the quotation ${form.number} for your upcoming event.\n\nIf you have any questions or need adjustments, feel free to reply to this email.\n\nBest regards,\nThe CQIS Team`,
+              attachmentBase64,
+              filename: `Quotation_${form.number}.pdf`
+            })
+          })
+
+          if (!emailResponse.ok) {
+            const errData = await emailResponse.json()
+            throw new Error(errData.error || 'Failed to send email')
+          }
+          
+          alert('Quotation sent successfully!')
+        } catch (emailError: any) {
+          console.error('Email sending error:', emailError)
+          alert(`Quotation saved, but failed to send email: ${emailError.message}`)
+        }
+      } else {
+        alert('Quotation saved, but customer has no email address.')
+      }
+    }
+
     router.push('/quotations')
   } catch (error) {
     alert('Failed to save quotation')
