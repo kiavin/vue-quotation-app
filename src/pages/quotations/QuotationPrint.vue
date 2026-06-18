@@ -4,8 +4,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { quotationService } from '@/services/quotationService'
 import QuotationTemplateBasic from '@/templates/documents/QuotationTemplateBasic.vue'
 import { Button } from '@/components/ui/button'
-import { Printer, ChevronLeft, Download } from 'lucide-vue-next'
+import { Printer, ChevronLeft, Download, Send } from 'lucide-vue-next'
 import { pdfService } from '@/services/pdfService'
+import SendEmailModal from '@/components/shared/SendEmailModal.vue'
 
 import type { Quotation } from '@/services/quotationService'
 
@@ -13,6 +14,13 @@ const route = useRoute()
 const router = useRouter()
 const quotation = ref<Quotation | null>(null)
 const isLoading = ref(true)
+
+const isEmailModalOpen = ref(false)
+const pdfElementRef = ref<HTMLElement | null>(null)
+const customerEmail = ref('')
+const customerName = ref('')
+const defaultSubject = ref('')
+const defaultMessage = ref('')
 
 onMounted(async () => {
   const id = route.params.id as string
@@ -33,6 +41,22 @@ onMounted(async () => {
 
 const handlePrint = () => {
   pdfService.print()
+}
+
+const openSendEmailModal = () => {
+  if (!quotation.value) return
+  
+  const customer = (quotation.value as any).customers
+  if (!customer || !customer.email) {
+    alert('This quotation is assigned to a customer without an email address.')
+    return
+  }
+
+  customerEmail.value = customer.email
+  customerName.value = customer.name
+  defaultSubject.value = `Quotation ${quotation.value.number} from CQIS`
+  defaultMessage.value = `Dear ${customer.name},\n\nPlease find attached the quotation ${quotation.value.number} for your upcoming event.\n\nIf you have any questions or need adjustments, feel free to reply to this email.\n\nBest regards,\nThe CQIS Team`
+  isEmailModalOpen.value = true
 }
 </script>
 
@@ -58,16 +82,22 @@ const handlePrint = () => {
             <Download class="w-4 h-4 mr-2" />
             Download PDF
           </Button>
+          <Button size="sm" @click="openSendEmailModal" class="gap-2 bg-[#0F766E] hover:bg-[#0F766E]/90">
+            <Send class="w-4 h-4" />
+            Send to Customer
+          </Button>
         </div>
       </div>
     </div>
 
     <!-- Document Content -->
-    <div v-if="!isLoading && quotation" class="py-8 print:py-0">
-      <QuotationTemplateBasic 
-        :data="(quotation as any)" 
-        :branding="(quotation as any).branding_snapshot" 
-      />
+    <div v-if="!isLoading && quotation" class="py-8 print:py-0 flex justify-center overflow-x-auto">
+      <div ref="pdfElementRef" class="w-[210mm] min-h-[297mm] bg-white shadow-sm print:shadow-none shrink-0">
+        <QuotationTemplateBasic 
+          :data="(quotation as any)" 
+          :branding="(quotation as any).branding_snapshot" 
+        />
+      </div>
     </div>
     
     <div v-else-if="isLoading" class="flex flex-col items-center justify-center min-h-[60vh]">
@@ -80,6 +110,18 @@ const handlePrint = () => {
       <Button variant="link" @click="router.push('/quotations')">Return to List</Button>
     </div>
   </div>
+
+  <SendEmailModal
+    :is-open="isEmailModalOpen"
+    :customer-name="customerName"
+    :customer-email="customerEmail"
+    :default-subject="defaultSubject"
+    :default-message="defaultMessage"
+    :filename="`Quotation_${quotation?.number}.pdf`"
+    :pdf-element="pdfElementRef"
+    @close="isEmailModalOpen = false"
+    @sent="isEmailModalOpen = false; router.push('/quotations')"
+  />
 </template>
 
 <style>
