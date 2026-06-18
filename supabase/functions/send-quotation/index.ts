@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'Quotations <quotes@yourdomain.com>', // Update this with your verified sender domain
+        from: 'Quotations <cqis.urbanloos.com>', // Update this with your verified sender domain
         to: [to],
         subject: subject,
         text: message,
