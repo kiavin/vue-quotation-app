@@ -1,4 +1,5 @@
 const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
+const RESEND_FROM_EMAIL = Deno.env.get('RESEND_FROM_EMAIL') || 'onboarding@resend.dev'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -23,7 +24,7 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'Quotations <cqis.urbanloos.com>', // Update this with your verified sender domain
+        from: `CQIS Quotations <${RESEND_FROM_EMAIL}>`,
         to: [to],
         subject: subject,
         text: message,
