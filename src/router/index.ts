@@ -6,11 +6,17 @@ const router = createRouter({
   routes: [
     {
       path: '/',
+      name: 'landing',
+      component: () => import('@/pages/Landing.vue'),
+      meta: { guestOnly: true },
+    },
+    {
+      path: '/',
       component: () => import('@/layouts/AppLayout.vue'),
       meta: { requiresAuth: true },
       children: [
         {
-          path: '',
+          path: 'dashboard',
           name: 'dashboard',
           component: () => import('@/pages/Dashboard.vue'),
         },
@@ -155,6 +161,11 @@ const router = createRouter({
       name: 'onboarding',
       component: () => import('@/pages/auth/Onboarding.vue'),
       meta: { requiresAuth: true },
+    },
+    {
+      path: '/:pathMatch(.*)*',
+      name: 'NotFound',
+      component: () => import('@/pages/NotFound.vue'),
     },
   ],
 })
