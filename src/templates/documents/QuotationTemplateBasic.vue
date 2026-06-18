@@ -60,19 +60,19 @@ const onEmailSent = () => {
 <template>
   <div class="relative">
     <div class="flex justify-end max-w-[210mm] mx-auto mb-4 print:hidden" v-if="!isPreview">
-      <button @click="prepareEmail" :disabled="isGeneratingPdf" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm font-medium transition-colors disabled:opacity-50 flex items-center">
+      <!-- <button @click="prepareEmail" :disabled="isGeneratingPdf" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow text-sm font-medium transition-colors disabled:opacity-50 flex items-center">
         <span v-if="isGeneratingPdf" class="mr-2">
           <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
         </span>
         {{ isGeneratingPdf ? 'Preparing...' : 'Email to Customer' }}
-      </button>
+      </button> -->
     </div>
 
     <div ref="documentRef" class="document-container bg-white text-slate-900 p-12 min-h-[297mm] w-full max-w-[210mm] mx-auto shadow-sm print:shadow-none">
       <!-- Header -->
-      <div class="flex justify-between items-start mb-12">
+      <div class="flex justify-between items-start mb-8">
         <div>
-          <div v-if="branding.logo_url" class="h-16 mb-6">
+          <div v-if="branding.logo_url" class="h-16 mb-2">
             <img :src="branding.logo_url" alt="Logo" class="h-full object-contain object-left" />
           </div>
           <h1 class="text-3xl font-bold mb-2">{{ branding.name }}</h1>
@@ -101,12 +101,12 @@ const onEmailSent = () => {
         </div>
       </div>
 
-      <hr class="border-slate-100 mb-12" />
+      <hr class="border-slate-100 mb-2" />
 
       <!-- Client Info -->
-      <div class="grid grid-cols-2 gap-12 mb-12 print:break-inside-avoid">
+      <div class="grid grid-cols-2 gap-12 mb-2 print:break-inside-avoid">
         <div>
-          <h2 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-4">Quotation For</h2>
+          <h2 class="text-xs font-bold uppercase tracking-widest text-slate-400 ">Quotation For</h2>
           <div class="space-y-1">
             <p class="font-bold text-lg">{{ data.customer?.name }}</p>
             <p class="text-slate-600">{{ data.customer?.email }}</p>
@@ -119,28 +119,28 @@ const onEmailSent = () => {
       <!-- Items Table -->
       <table class="w-full mb-12">
         <thead>
-          <tr class="border-b-2 border-slate-900 text-left">
-            <th class="py-4 font-bold text-sm uppercase tracking-wider">Description</th>
-            <th class="py-4 font-bold text-sm uppercase tracking-wider text-right">Qty</th>
-            <th class="py-4 font-bold text-sm uppercase tracking-wider text-right">Price</th>
-            <th class="py-4 font-bold text-sm uppercase tracking-wider text-right">Total</th>
+          <tr class="border-b-2 border-slate-200 text-left">
+            <th class="py-2 font-bold text-sm uppercase tracking-wider">Description</th>
+            <th class="py-2 font-bold text-sm uppercase tracking-wider text-right">Qty</th>
+            <th class="py-2 font-bold text-sm uppercase tracking-wider text-right">Price</th>
+            <th class="py-2 font-bold text-sm uppercase tracking-wider text-right">Total</th>
           </tr>
         </thead>
         <tbody class="divide-y divide-slate-100">
         <tr v-for="item in data.items" :key="item.id" class="print:break-inside-avoid">
-            <td class="py-4">
-              <p class="font-bold">{{ item.name }}</p>
+            <td class="py-2">
+              <p class="font-normal">{{ item.name }}</p>
               <p class="text-sm text-slate-500" v-if="item.description">{{ item.description }}</p>
             </td>
-            <td class="py-4 text-right">{{ item.quantity }}</td>
-            <td class="py-4 text-right">{{ formatCurrency(item.price) }}</td>
-            <td class="py-4 text-right font-semibold">{{ formatCurrency(item.total) }}</td>
+            <td class="py-2 text-right">{{ item.quantity }}</td>
+            <td class="py-2 text-right">{{ formatCurrency(item.price) }}</td>
+            <td class="py-2 text-right font-semibold">{{ formatCurrency(item.total) }}</td>
           </tr>
         </tbody>
       </table>
 
       <!-- Totals -->
-      <div class="flex justify-end mb-12 print:break-inside-avoid">
+      <div class="flex justify-end mb-4 print:break-inside-avoid">
         <div class="w-1/3 space-y-3">
           <div class="flex justify-between text-sm text-slate-500">
             <span>Subtotal</span>
@@ -164,7 +164,7 @@ const onEmailSent = () => {
       </div>
 
       <!-- Notes -->
-      <div v-if="data.notes" class="mb-12 print:break-inside-avoid">
+      <div v-if="data.notes" class="mb-4 print:break-inside-avoid">
         <h3 class="text-xs font-bold uppercase tracking-widest text-slate-400 mb-2">Notes & Terms</h3>
         <p class="text-sm text-slate-600 whitespace-pre-line leading-relaxed">{{ data.notes }}</p>
       </div>
