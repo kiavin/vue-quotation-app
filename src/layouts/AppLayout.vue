@@ -69,7 +69,7 @@ const handleLogout = async () => {
   isLoggingOut.value = true
   try {
     await authService.signOut()
-    router.push({ name: 'login' })
+    router.push({ name: 'landing' })
   } catch (error) {
     console.error('Logout failed:', error)
   } finally {
