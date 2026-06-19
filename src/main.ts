@@ -1,4 +1,4 @@
-import { createApp } from 'vue'
+import { createApp, watch } from 'vue'
 import { createPinia } from 'pinia'
 import App from './App.vue'
 import router from './router'
@@ -6,35 +6,36 @@ import { useAuthStore } from './stores/auth'
 import { authService } from './services/authService'
 
 import './assets/css/main.css'
-import 'izitoast/dist/css/iziToast.min.css'
-import 'sweetalert2/dist/sweetalert2.min.css'
-import './assets/css/notify.css'
 
-const initApp = async () => {
-  const app = createApp(App)
-  const pinia = createPinia()
+const app = createApp(App)
+const pinia = createPinia()
 
-  app.use(pinia)
-  
-  const authStore = useAuthStore()
+app.use(pinia)
+app.use(router)
 
-  // Initialize auth state before mounting
-  try {
-    const session = await authService.getSession()
-    await authStore.setSession(session)
-    
-    // Listen for auth changes
-    authService.onAuthStateChange(async (_event, session) => {
-      await authStore.setSession(session)
-    })
-  } catch (error) {
-    console.error('Failed to initialize auth:', error)
-  } finally {
-    authStore.setLoading(false)
+// Mount the app immediately — don't block rendering on auth.
+// The router guard handles redirects once auth resolves.
+app.mount('#app')
+
+// Initialize auth in the background (non-blocking)
+const authStore = useAuthStore()
+
+authService.getSession()
+  .then(session => authStore.setSession(session))
+  .catch(error => console.error('Failed to initialize auth:', error))
+  .finally(() => authStore.setLoading(false))
+
+// Listen for auth changes
+authService.onAuthStateChange(async (_event, session) => {
+  await authStore.setSession(session)
+})
+
+// Redirect authenticated users away from guest-only pages once auth resolves
+watch(() => authStore.loading, (isLoading) => {
+  if (!isLoading && authStore.isAuthenticated) {
+    const current = router.currentRoute.value
+    if (current.meta.guestOnly) {
+      router.replace({ name: 'dashboard' })
+    }
   }
-
-  app.use(router)
-  app.mount('#app')
-}
-
-initApp()
+})

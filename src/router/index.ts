@@ -173,9 +173,22 @@ const router = createRouter({
 router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
 
-  // Wait for auth to initialize if it hasn't yet
-  if (authStore.loading) {
-    // handled in main.ts
+  // Guest-only routes (landing, login) render immediately — no auth wait
+  // Auth-required routes must wait for auth to resolve
+  if (authStore.loading && to.meta.requiresAuth) {
+    await new Promise<void>((resolve) => {
+      const unwatch = authStore.$subscribe(() => {
+        if (!authStore.loading) {
+          unwatch()
+          resolve()
+        }
+      })
+      // If loading already resolved between the check and subscribe
+      if (!authStore.loading) {
+        unwatch()
+        resolve()
+      }
+    })
   }
 
   const isAuthenticated = authStore.isAuthenticated
