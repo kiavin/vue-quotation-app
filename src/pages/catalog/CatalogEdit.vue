@@ -4,6 +4,7 @@ import { useRouter, useRoute } from 'vue-router'
 import { useCatalogStore } from '@/stores/catalog'
 import { useAuthStore } from '@/stores/auth'
 import { catalogService, type Item } from '@/services/catalogService'
+import { notify } from '@/lib/notify'
 import { ChevronLeft } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -19,34 +20,35 @@ const isSaving = ref(false)
 
 onMounted(async () => {
   const id = route.params.id as string
-  try {
-    if (!authStore.organizationId) throw new Error('No organization')
-    const items = await catalogService.getItems(authStore.organizationId)
-    const found = items.find(i => i.id === id)
-    if (found) {
-      item.value = found
-    } else {
-      throw new Error('Item not found')
-    }
-  } catch (error) {
-    alert('Failed to load item')
+  if (!authStore.organizationId) {
     router.push('/catalog')
-  } finally {
-    isLoading.value = false
+    return
   }
+  
+  const result = await catalogService.getItems(authStore.organizationId)
+  if (result.ok && result.data) {
+    const found = result.data.find(i => i.id === id)
+    if (found) {
+      item.value = found as Item
+    } else {
+      notify.toast('error', 'Not Found', 'Item not found')
+      router.push('/catalog')
+    }
+  } else {
+    notify.handleResponse(result)
+    router.push('/catalog')
+  }
+  isLoading.value = false
 })
 
 const handleSave = async (values: Item) => {
   if (!item.value?.id) return
   isSaving.value = true
-  try {
-    await catalogStore.updateItem(item.value.id, values)
+  const result = await catalogStore.updateItem(item.value.id, values)
+  if (result.ok) {
     router.push('/catalog')
-  } catch (error) {
-    alert('Failed to update catalog item')
-  } finally {
-    isSaving.value = false
   }
+  isSaving.value = false
 }
 </script>
 
