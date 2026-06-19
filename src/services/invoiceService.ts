@@ -1,4 +1,6 @@
-import { supabase, handleSupabaseError } from '@/lib/supabase'
+import { supabase, mapSupabaseError } from '@/lib/supabase'
+import { apiSuccess, apiError } from '@/types/api-response'
+import type { ApiResponse } from '@/types/api-response'
 
 import type { Quotation, QuotationItem } from './quotationService'
 
@@ -37,7 +39,7 @@ export const invoiceService = {
   /**
    * Get all invoices for the current organization
    */
-  async getInvoices(organizationId: string) {
+  async getInvoices(organizationId: string): Promise<ApiResponse<any[]>> {
     try {
       const { data, error } = await supabase
         .from('invoices')
@@ -51,16 +53,19 @@ export const invoiceService = {
         .order('created_at', { ascending: false })
       
       if (error) throw error
-      return data
+      return apiSuccess(data)
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Load Failed',
+        message: 'Could not load invoices.',
+      })
     }
   },
 
   /**
    * Get a single invoice by ID with its items
    */
-  async getInvoiceById(id: string) {
+  async getInvoiceById(id: string): Promise<ApiResponse<any>> {
     try {
       const { data: invoice, error: iError } = await supabase
         .from('invoices')
@@ -80,16 +85,19 @@ export const invoiceService = {
       
       if (itError) throw itError
 
-      return { ...invoice, items }
+      return apiSuccess({ ...invoice, items })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Load Failed',
+        message: 'Could not load invoice details.',
+      })
     }
   },
 
   /**
    * Create an invoice from a quotation
    */
-  async createFromQuotation(quotation: Quotation & { items: QuotationItem[] }) {
+  async createFromQuotation(quotation: Quotation & { items: QuotationItem[] }): Promise<ApiResponse<any>> {
     try {
       // 1. Generate Invoice Number safely via RPC
       const { data: invoiceNumber, error: countError } = await supabase.rpc(
@@ -108,7 +116,7 @@ export const invoiceService = {
         number: invoiceNumber,
         status: 'draft',
         issue_date: date.toISOString().split('T')[0],
-        due_date: new Date(date.setDate(date.getDate() + 14)).toISOString().split('T')[0], // Default 14 days
+        due_date: new Date(date.setDate(date.getDate() + 14)).toISOString().split('T')[0],
         subtotal: quotation.subtotal,
         transport_charge: quotation.transport_charge,
         tax_rate: quotation.tax_rate,
@@ -151,16 +159,31 @@ export const invoiceService = {
           .eq('id', quotation.id)
       }
 
-      return newInvoice
+      return apiSuccess(newInvoice, {
+        type: 'toast',
+        title: 'Invoice Created',
+        message: `Invoice ${newInvoice.number} has been created from the quotation.`,
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Conversion Failed',
+        message: 'Could not convert the quotation to an invoice.',
+      })
     }
   },
 
   /**
    * Update invoice status
    */
-  async updateStatus(id: string, status: Invoice['status']) {
+  async updateStatus(id: string, status: Invoice['status']): Promise<ApiResponse<boolean>> {
+    const statusMessages: Record<string, string> = {
+      draft: 'Invoice moved back to draft.',
+      sent: 'Invoice has been marked as sent.',
+      paid: 'Invoice has been marked as paid!',
+      overdue: 'Invoice has been marked as overdue.',
+      void: 'Invoice has been voided.',
+    }
+
     try {
       const { error } = await supabase
         .from('invoices')
@@ -168,16 +191,24 @@ export const invoiceService = {
         .eq('id', id)
       
       if (error) throw error
-      return true
+      return apiSuccess(true, {
+        type: 'toast',
+        severity: status === 'paid' ? 'success' : status === 'void' ? 'warning' : 'info',
+        title: 'Status Updated',
+        message: statusMessages[status] || 'Invoice status updated.',
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Status Update Failed',
+        message: 'Could not update the invoice status.',
+      })
     }
   },
 
   /**
    * Delete an invoice
    */
-  async deleteInvoice(id: string) {
+  async deleteInvoice(id: string): Promise<ApiResponse<boolean>> {
     try {
       const { error } = await supabase
         .from('invoices')
@@ -185,9 +216,16 @@ export const invoiceService = {
         .eq('id', id)
       
       if (error) throw error
-      return true
+      return apiSuccess(true, {
+        type: 'toast',
+        title: 'Invoice Deleted',
+        message: 'The invoice has been removed.',
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Delete Failed',
+        message: 'Could not delete the invoice.',
+      })
     }
   }
 }
