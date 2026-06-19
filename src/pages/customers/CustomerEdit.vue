@@ -7,6 +7,7 @@ import { ChevronLeft } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import CustomerForm from '@/components/forms/CustomerForm.vue'
+import { notify } from '@/lib/notify'
 
 const router = useRouter()
 const route = useRoute()
@@ -17,27 +18,25 @@ const isSaving = ref(false)
 
 onMounted(async () => {
   const id = route.params.id as string
-  try {
-    customer.value = await customerService.getCustomerById(id)
-  } catch (error) {
-    alert('Failed to load customer')
+  isLoading.value = true
+  const result = await customerService.getCustomerById(id)
+  if (result.ok && result.data) {
+    customer.value = result.data
+  } else {
+    notify.handleResponse(result)
     router.push('/customers')
-  } finally {
-    isLoading.value = false
   }
+  isLoading.value = false
 })
 
 const handleSave = async (values: Customer) => {
   if (!customer.value?.id) return
   isSaving.value = true
-  try {
-    await customerStore.updateCustomer(customer.value.id, values)
+  const result = await customerStore.updateCustomer(customer.value.id, values)
+  if (result.ok) {
     router.push('/customers')
-  } catch (error) {
-    alert('Failed to update customer')
-  } finally {
-    isSaving.value = false
   }
+  isSaving.value = false
 }
 </script>
 
