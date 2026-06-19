@@ -4,6 +4,7 @@ import { X, Send, Eye } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { notify } from '@/lib/notify'
 import html2pdf from 'html2pdf.js'
 
 const props = defineProps<{
@@ -37,7 +38,7 @@ watch(() => props.isOpen, (newVal) => {
 
 const handlePreview = async () => {
   if (!props.pdfElement) {
-    alert('Document element not found for PDF preview.')
+    notify.toast('error', 'Preview Error', 'Document element not found for PDF preview.')
     return
   }
   
@@ -54,7 +55,7 @@ const handlePreview = async () => {
     window.open(pdfBlobUrl, '_blank')
   } catch (error: any) {
     console.error('PDF preview error:', error)
-    alert(`Failed to preview PDF: ${error.message}`)
+    notify.toast('error', 'Preview Failed', `Failed to preview PDF: ${error.message}`)
   } finally {
     isPreviewing.value = false
   }
@@ -62,7 +63,7 @@ const handlePreview = async () => {
 
 const handleSend = async () => {
   if (!props.pdfElement) {
-    alert('Document element not found for PDF generation.')
+    notify.toast('error', 'Send Error', 'Document element not found for PDF generation.')
     return
   }
   
@@ -102,9 +103,10 @@ const handleSend = async () => {
     }
     
     emit('sent')
+    notify.toast('success', 'Email Sent', `Quotation successfully sent to ${emailTo.value}`)
   } catch (error: any) {
     console.error('Email sending error:', error)
-    alert(`Failed to send email: ${error.message}`)
+    notify.toast('error', 'Send Failed', `Failed to send email: ${error.message}`)
   } finally {
     isSending.value = false
   }
