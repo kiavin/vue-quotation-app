@@ -39,21 +39,26 @@ onMounted(async () => {
   if (!authStore.organizationId) return
   
   try {
-    const [aggregatedStats, quotations] = await Promise.all([
+    const [statsResult, quotationsResult] = await Promise.all([
       dashboardService.getAggregatedStats(authStore.organizationId),
       quotationService.getQuotations(authStore.organizationId)
     ])
 
-    stats.value = [
-      { name: 'Total Customers', value: aggregatedStats.customersCount.toString(), icon: Users, change: '--', changeType: 'neutral' },
-      { name: 'Catalog Items', value: aggregatedStats.itemsCount.toString(), icon: Plus, change: '--', changeType: 'neutral' },
-      { name: 'Active Quotations', value: aggregatedStats.quotationsCount.toString(), icon: Quote, change: '--', changeType: 'neutral' },
-      { name: 'Pending Invoices', value: aggregatedStats.invoicesCount.toString(), icon: FileText, change: '--', changeType: 'neutral' },
-      { name: 'Revenue (MTD)', value: formatCurrency(aggregatedStats.totalRevenue), icon: TrendingUp, change: '--', changeType: 'neutral' },
-      { name: 'Outstanding', value: formatCurrency(aggregatedStats.outstandingAmount), icon: TrendingUp, change: '--', changeType: 'neutral' },
-    ]
+    if (statsResult.ok && statsResult.data) {
+      const aggregatedStats = statsResult.data
+      stats.value = [
+        { name: 'Total Customers', value: aggregatedStats.customersCount.toString(), icon: Users, change: '--', changeType: 'neutral' },
+        { name: 'Catalog Items', value: aggregatedStats.itemsCount.toString(), icon: Plus, change: '--', changeType: 'neutral' },
+        { name: 'Active Quotations', value: aggregatedStats.quotationsCount.toString(), icon: Quote, change: '--', changeType: 'neutral' },
+        { name: 'Pending Invoices', value: aggregatedStats.invoicesCount.toString(), icon: FileText, change: '--', changeType: 'neutral' },
+        { name: 'Revenue (MTD)', value: formatCurrency(aggregatedStats.totalRevenue), icon: TrendingUp, change: '--', changeType: 'neutral' },
+        { name: 'Outstanding', value: formatCurrency(aggregatedStats.outstandingAmount), icon: TrendingUp, change: '--', changeType: 'neutral' },
+      ]
+    }
 
-    recentQuotations.value = (quotations || []).slice(0, 5)
+    if (quotationsResult.ok && quotationsResult.data) {
+      recentQuotations.value = quotationsResult.data.slice(0, 5)
+    }
   } catch (error) {
     console.error('Failed to load dashboard data', error)
   } finally {
