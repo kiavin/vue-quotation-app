@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { organizationService } from '@/services/organizationService'
 import { ChevronLeft, Loader2, Upload } from 'lucide-vue-next'
+import { notify } from '@/lib/notify'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -28,8 +29,9 @@ const form = ref({
 const logoUrl = ref<string | null>(null)
 
 onMounted(async () => {
-  try {
-    const org = await organizationService.getOrganization(orgId)
+  const result = await organizationService.getOrganization(orgId)
+  if (result.ok && result.data) {
+    const org = result.data
     logoUrl.value = org.logo_url || null
     form.value = {
       name: org.name || '',
@@ -41,37 +43,33 @@ onMounted(async () => {
       secondary_color: org.secondary_color || '#0EA5E9',
       accent_color: org.accent_color || '#F59E0B'
     }
-  } catch (error) {
-    alert('Failed to load organization')
+  } else {
+    notify.handleResponse(result)
     router.push('/organizations')
-  } finally {
-    isLoading.value = false
   }
+  isLoading.value = false
 })
 
 const handleLogoUpload = async (event: Event) => {
   const target = event.target as HTMLInputElement
   if (target.files && target.files[0]) {
-    try {
-      const url = await organizationService.uploadLogo(orgId, target.files[0])
-      logoUrl.value = url
-      await organizationService.updateOrganization(orgId, { logo_url: url })
-    } catch (error) {
-      alert('Failed to upload logo')
+    const result = await organizationService.uploadLogo(orgId, target.files[0])
+    notify.handleResponse(result)
+    if (result.ok && result.data) {
+      logoUrl.value = result.data
+      await organizationService.updateOrganization(orgId, { logo_url: result.data })
     }
   }
 }
 
 const handleSave = async () => {
   isSaving.value = true
-  try {
-    await organizationService.updateOrganization(orgId, form.value)
+  const result = await organizationService.updateOrganization(orgId, form.value)
+  notify.handleResponse(result)
+  if (result.ok) {
     router.push(`/organizations/${orgId}`)
-  } catch (error) {
-    alert('Failed to update organization')
-  } finally {
-    isSaving.value = false
   }
+  isSaving.value = false
 }
 </script>
 
