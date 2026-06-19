@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useInvoicesStore } from '@/stores/invoices'
 import type { Invoice } from '@/services/invoiceService'
+import { notify } from '@/lib/notify'
 import { 
   ChevronLeft, 
   Printer, 
@@ -34,14 +35,13 @@ const isLoading = ref(true)
 
 onMounted(async () => {
   const id = route.params.id as string
-  try {
-    await invoicesStore.loadInvoice(id)
-  } catch (error) {
-    alert('Failed to load invoice')
+  isLoading.value = true
+  const result = await invoicesStore.loadInvoice(id)
+  if (!result.ok) {
+    notify.handleResponse(result)
     router.push('/invoices')
-  } finally {
-    isLoading.value = false
   }
+  isLoading.value = false
 })
 
 const formatCurrency = (val: number) => {
@@ -55,11 +55,8 @@ const formatDate = (date?: string) => {
 
 const handleStatusChange = async (status: Invoice['status']) => {
   if (!invoicesStore.currentInvoice?.id) return
-  try {
-    await invoicesStore.updateStatus(invoicesStore.currentInvoice.id, status)
-  } catch (error) {
-    alert('Failed to update status')
-  }
+  const result = await invoicesStore.updateStatus(invoicesStore.currentInvoice.id, status)
+  notify.handleResponse(result)
 }
 </script>
 
