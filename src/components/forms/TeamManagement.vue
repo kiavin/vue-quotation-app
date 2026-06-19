@@ -2,6 +2,7 @@
 import { ref, onMounted, watch } from 'vue'
 import { teamService, type OrganizationMember } from '@/services/teamService'
 import { useAuthStore } from '@/stores/auth'
+import { notify } from '@/lib/notify'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -55,32 +56,34 @@ watch(() => props.organizationId, () => {
 const handleInvite = async () => {
   const orgId = getOrgId()
   if (!orgId) return
-  try {
-    await teamService.inviteMember(orgId, inviteForm.value.email, inviteForm.value.role)
-    alert(`Invitation sent to ${inviteForm.value.email}`)
+  const result = await teamService.inviteMember(orgId, inviteForm.value.email, inviteForm.value.role)
+  notify.handleResponse(result)
+  if (result.ok) {
     inviteForm.value.email = ''
-  } catch (error) {
-    alert('Failed to send invitation')
   }
 }
 
 const handleRemove = async (id: string) => {
-  if (!confirm('Are you sure you want to remove this member?')) return
-  try {
-    await teamService.removeMember(id)
+  const isConfirmed = await notify.confirm(
+    'Remove Member',
+    'Are you sure you want to remove this member from the organization?',
+    { confirmText: 'Yes, remove', icon: 'warning' }
+  )
+  if (!isConfirmed) return
+  
+  const result = await teamService.removeMember(id)
+  notify.handleResponse(result)
+  if (result.ok) {
     await fetchMembers()
-  } catch (error) {
-    alert('Failed to remove member')
   }
 }
 
 const handleRoleChange = async (id: string, event: Event) => {
   const select = event.target as HTMLSelectElement
-  try {
-    await teamService.updateMemberRole(id, select.value as any)
+  const result = await teamService.updateMemberRole(id, select.value as any)
+  notify.handleResponse(result)
+  if (result.ok) {
     await fetchMembers()
-  } catch (error) {
-    alert('Failed to update role')
   }
 }
 </script>
