@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { customerService, type Customer } from '@/services/customerService'
 import { useAuthStore } from '@/stores/auth'
+import { notify } from '@/lib/notify'
 
 export const useCustomerStore = defineStore('customers', () => {
   const customers = ref<Customer[]>([])
@@ -13,57 +14,56 @@ export const useCustomerStore = defineStore('customers', () => {
     if (!authStore.organizationId) return
     loading.value = true
     error.value = null
-    try {
-      customers.value = await customerService.getCustomers(authStore.organizationId)
-    } catch (err: any) {
-      error.value = err.message
-    } finally {
-      loading.value = false
+    const result = await customerService.getCustomers(authStore.organizationId)
+    if (result.ok) {
+      customers.value = result.data!
+    } else {
+      error.value = result.error
+      notify.handleResponse(result)
     }
+    loading.value = false
   }
 
   async function addCustomer(customer: Customer) {
     loading.value = true
-    try {
-      const newCustomer = await customerService.createCustomer(customer)
-      customers.value.push(newCustomer)
-      return newCustomer
-    } catch (err: any) {
-      error.value = err.message
-      throw err
-    } finally {
-      loading.value = false
+    const result = await customerService.createCustomer(customer)
+    notify.handleResponse(result)
+    if (result.ok) {
+      customers.value.push(result.data!)
+    } else {
+      error.value = result.error
     }
+    loading.value = false
+    return result
   }
 
   async function updateCustomer(id: string, updates: Partial<Customer>) {
     loading.value = true
-    try {
-      const updated = await customerService.updateCustomer(id, updates)
+    const result = await customerService.updateCustomer(id, updates)
+    notify.handleResponse(result)
+    if (result.ok) {
       const index = customers.value.findIndex(c => c.id === id)
       if (index !== -1) {
-        customers.value[index] = updated
+        customers.value[index] = result.data!
       }
-      return updated
-    } catch (err: any) {
-      error.value = err.message
-      throw err
-    } finally {
-      loading.value = false
+    } else {
+      error.value = result.error
     }
+    loading.value = false
+    return result
   }
 
   async function removeCustomer(id: string) {
     loading.value = true
-    try {
-      await customerService.deleteCustomer(id)
+    const result = await customerService.deleteCustomer(id)
+    notify.handleResponse(result)
+    if (result.ok) {
       customers.value = customers.value.filter(c => c.id !== id)
-    } catch (err: any) {
-      error.value = err.message
-      throw err
-    } finally {
-      loading.value = false
+    } else {
+      error.value = result.error
     }
+    loading.value = false
+    return result
   }
 
   return {
