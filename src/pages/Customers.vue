@@ -8,6 +8,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import CustomerTable from '@/components/forms/CustomerTable.vue'
 import type { Customer } from '@/services/customerService'
+import { notify } from '@/lib/notify'
 
 const router = useRouter()
 const customerStore = useCustomerStore()
@@ -36,12 +37,13 @@ const handleView = (customer: Customer) => {
 }
 
 const handleDelete = async (customer: Customer) => {
-  if (confirm(`Are you sure you want to delete ${customer.name}?`)) {
-    try {
-      await customerStore.removeCustomer(customer.id!)
-    } catch (error) {
-      alert('Failed to delete customer')
-    }
+  const isConfirmed = await notify.confirm(
+    'Delete Customer',
+    `Are you sure you want to delete ${customer.name}?`,
+    { confirmText: 'Yes, delete', icon: 'warning' }
+  )
+  if (isConfirmed) {
+    await customerStore.removeCustomer(customer.id!)
   }
 }
 </script>
