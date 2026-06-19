@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { quotationService, type Quotation, type QuotationItem } from '@/services/quotationService'
 import { useSettingsStore } from '@/stores/settings'
 import { useAuthStore } from '@/stores/auth'
+import { notify } from '@/lib/notify'
 
 export const useQuotationStore = defineStore('quotations', () => {
   const settingsStore = useSettingsStore()
@@ -34,30 +35,31 @@ export const useQuotationStore = defineStore('quotations', () => {
     if (!authStore.organizationId) return
     loading.value = true
     error.value = null
-    try {
-      quotations.value = await quotationService.getQuotations(authStore.organizationId)
-    } catch (err: any) {
-      error.value = err.message
-    } finally {
-      loading.value = false
+    const result = await quotationService.getQuotations(authStore.organizationId)
+    if (result.ok) {
+      quotations.value = result.data!
+    } else {
+      error.value = result.error
+      notify.handleResponse(result)
     }
+    loading.value = false
   }
 
   async function loadQuotation(id: string) {
     loading.value = true
     error.value = null
-    try {
-      const data = await quotationService.getQuotationById(id)
-      currentQuotation.value = data
-      currentItems.value = data.items
-      transportCharge.value = data.transport_charge
-      taxRate.value = data.tax_rate
-    } catch (err: any) {
-      error.value = err.message
-      throw err
-    } finally {
-      loading.value = false
+    const result = await quotationService.getQuotationById(id)
+    if (result.ok && result.data) {
+      currentQuotation.value = result.data
+      currentItems.value = result.data.items || []
+      transportCharge.value = result.data.transport_charge
+      taxRate.value = result.data.tax_rate
+    } else {
+      error.value = result.error
+      notify.handleResponse(result)
     }
+    loading.value = false
+    return result
   }
 
   function addItem(item: QuotationItem) {
@@ -81,41 +83,44 @@ export const useQuotationStore = defineStore('quotations', () => {
 
   async function saveQuotation(quotation: Quotation) {
     loading.value = true
-    try {
-      // Create branding snapshot
-      if (!settingsStore.organization) {
-        await settingsStore.fetchOrganization()
-      }
-
-      const branding = settingsStore.organization
-      const snapshot = branding ? {
-        name: branding.name,
-        logo_url: branding.logo_url,
-        primary_color: branding.primary_color,
-        secondary_color: branding.secondary_color,
-        accent_color: branding.accent_color,
-        address: branding.address,
-        phone: branding.phone,
-        email: branding.email
-      } : null
-
-      const quotationData = {
-        ...quotation,
-        branding_snapshot: snapshot
-      }
-
-      if (quotation.id) {
-        await quotationService.updateQuotation(quotation.id, quotationData, currentItems.value)
-      } else {
-        await quotationService.createQuotation(quotationData, currentItems.value)
-      }
-      await fetchQuotations()
-    } catch (err: any) {
-      error.value = err.message
-      throw err
-    } finally {
-      loading.value = false
+    // Create branding snapshot
+    if (!settingsStore.organization) {
+      await settingsStore.fetchOrganization()
     }
+
+    const branding = settingsStore.organization
+    const snapshot = branding ? {
+      name: branding.name,
+      logo_url: branding.logo_url,
+      primary_color: branding.primary_color,
+      secondary_color: branding.secondary_color,
+      accent_color: branding.accent_color,
+      address: branding.address,
+      phone: branding.phone,
+      email: branding.email
+    } : null
+
+    const quotationData = {
+      ...quotation,
+      branding_snapshot: snapshot
+    }
+
+    let result
+    if (quotation.id) {
+      result = await quotationService.updateQuotation(quotation.id, quotationData, currentItems.value)
+    } else {
+      result = await quotationService.createQuotation(quotationData, currentItems.value)
+    }
+
+    notify.handleResponse(result)
+
+    if (result.ok) {
+      await fetchQuotations()
+    } else {
+      error.value = result.error
+    }
+    loading.value = false
+    return result
   }
 
   function resetBuilder() {
