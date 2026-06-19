@@ -19,6 +19,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import InvoiceStatusBadge from '@/components/shared/InvoiceStatusBadge.vue'
+import AppLoader from '@/components/shared/AppLoader.vue'
 import { 
   Table, 
   TableHeader, 
@@ -224,8 +225,8 @@ const handleStatusChange = async (status: Invoice['status']) => {
       </div>
     </div>
 
-    <div v-else-if="isLoading" class="text-center p-12">
-      <p class="text-slate-500">Loading invoice details...</p>
+    <div v-else-if="isLoading" class="flex items-center justify-center min-h-[500px]">
+      <AppLoader message="Loading Invoice..." subtext="Retrieving invoice details." />
     </div>
   </div>
 </template>
