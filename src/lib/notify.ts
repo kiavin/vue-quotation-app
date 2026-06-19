@@ -2,6 +2,11 @@
 // Notification Engine — Global interceptor for AlertifyPayload
 // ============================================================
 
+// Co-locate CSS with the consuming module (keeps them out of landing page critical path)
+import 'izitoast/dist/css/iziToast.min.css'
+import 'sweetalert2/dist/sweetalert2.min.css'
+import '@/assets/css/notify.css'
+
 import iziToast from 'izitoast'
 import Swal from 'sweetalert2'
 import type { ApiResponse, AlertifyPayload } from '@/types/api-response'
