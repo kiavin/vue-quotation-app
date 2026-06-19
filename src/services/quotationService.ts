@@ -5,6 +5,7 @@ export interface Quotation {
   organization_id: string
   customer_id: string
   number: string
+  title?: string
   status: 'draft' | 'sent' | 'approved' | 'rejected' | 'expired'
   date: string
   expiry_date?: string
