@@ -5,6 +5,7 @@ import { ref } from 'vue'
 import SendEmailModal from '@/components/SendEmailModal.vue'
 // @ts-ignore - html2pdf.js does not provide native TS declarations
 import html2pdf from 'html2pdf.js'
+import { notify } from '@/lib/notify'
 
 export interface Props {
   data: Quotation & { items: QuotationItem[], customer: any }
@@ -46,14 +47,14 @@ const prepareEmail = async () => {
     isModalOpen.value = true
   } catch (error) {
     console.error('Failed to generate PDF', error)
-    alert('Failed to generate PDF')
+    notify.toast('error', 'PDF Error', 'Failed to generate PDF')
   } finally {
     isGeneratingPdf.value = false
   }
 }
 
 const onEmailSent = () => {
-  alert('Email sent successfully!')
+  notify.toast('success', 'Email Sent', 'Email sent successfully!')
 }
 </script>
 
