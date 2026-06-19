@@ -36,13 +36,13 @@ const fetchMembers = async () => {
   const orgId = getOrgId()
   if (!orgId) return
   isLoading.value = true
-  try {
-    members.value = await teamService.getMembers(orgId)
-  } catch (error) {
-    console.error('Failed to fetch team members', error)
-  } finally {
-    isLoading.value = false
+  const result = await teamService.getMembers(orgId)
+  if (result.ok && result.data) {
+    members.value = result.data
+  } else {
+    notify.handleResponse(result)
   }
+  isLoading.value = false
 }
 
 onMounted(() => {
