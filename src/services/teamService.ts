@@ -1,4 +1,6 @@
-import { supabase, handleSupabaseError } from '@/lib/supabase'
+import { supabase, mapSupabaseError } from '@/lib/supabase'
+import { apiSuccess, apiError } from '@/types/api-response'
+import type { ApiResponse } from '@/types/api-response'
 
 export interface OrganizationMember {
   id: string
@@ -17,7 +19,7 @@ export const teamService = {
   /**
    * Get all members for an organization
    */
-  async getMembers(organizationId: string) {
+  async getMembers(organizationId: string): Promise<ApiResponse<OrganizationMember[]>> {
     try {
       // 1. Fetch organization members
       const { data: membersData, error: membersError } = await supabase
@@ -29,7 +31,7 @@ export const teamService = {
       if (membersError) throw membersError
 
       if (!membersData || membersData.length === 0) {
-        return []
+        return apiSuccess([] as OrganizationMember[])
       }
 
       // 2. Extract user IDs
@@ -57,16 +59,19 @@ export const teamService = {
         }
       })
 
-      return mergedData as OrganizationMember[]
+      return apiSuccess(mergedData as OrganizationMember[])
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Load Failed',
+        message: 'Could not load team members.',
+      })
     }
   },
 
   /**
    * Invite a new member
    */
-  async inviteMember(organizationId: string, email: string, role: OrganizationMember['role']) {
+  async inviteMember(organizationId: string, email: string, role: OrganizationMember['role']): Promise<ApiResponse<boolean>> {
     try {
       const token = Math.random().toString(36).substring(2, 15) + Math.random().toString(36).substring(2, 15)
       const expiresAt = new Date()
@@ -83,16 +88,23 @@ export const teamService = {
         })
       
       if (error) throw error
-      return true
+      return apiSuccess(true, {
+        type: 'toast',
+        title: 'Invitation Sent',
+        message: `An invitation has been sent to ${email}.`,
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Invitation Failed',
+        message: `Could not send the invitation to ${email}.`,
+      })
     }
   },
 
   /**
    * Update member role
    */
-  async updateMemberRole(id: string, role: OrganizationMember['role']) {
+  async updateMemberRole(id: string, role: OrganizationMember['role']): Promise<ApiResponse<boolean>> {
     try {
       const { error } = await supabase
         .from('organization_members')
@@ -100,16 +112,23 @@ export const teamService = {
         .eq('id', id)
       
       if (error) throw error
-      return true
+      return apiSuccess(true, {
+        type: 'toast',
+        title: 'Role Updated',
+        message: `Team member role has been changed to ${role}.`,
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Update Failed',
+        message: 'Could not update the team member role.',
+      })
     }
   },
 
   /**
    * Remove member
    */
-  async removeMember(id: string) {
+  async removeMember(id: string): Promise<ApiResponse<boolean>> {
     try {
       const { error } = await supabase
         .from('organization_members')
@@ -117,9 +136,16 @@ export const teamService = {
         .eq('id', id)
       
       if (error) throw error
-      return true
+      return apiSuccess(true, {
+        type: 'toast',
+        title: 'Member Removed',
+        message: 'The team member has been removed from the organization.',
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Remove Failed',
+        message: 'Could not remove the team member.',
+      })
     }
   }
 }
