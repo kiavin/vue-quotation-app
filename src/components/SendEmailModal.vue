@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue'
 import { createClient } from '@supabase/supabase-js'
+import { notify } from '@/lib/notify'
 
 // Initialize supabase client locally if not provided
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || ''
@@ -57,7 +58,7 @@ const sendEmail = async () => {
     emit('close')
   } catch (err) {
     console.error('Error sending email:', err)
-    alert('Failed to send email.')
+    notify.toast('error', 'Send Failed', 'Failed to send email.')
   } finally {
     isSending.value = false
   }
