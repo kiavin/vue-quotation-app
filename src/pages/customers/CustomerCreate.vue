@@ -16,19 +16,14 @@ const isSaving = ref(false)
 
 const handleSave = async (values: Customer) => {
   isSaving.value = true
-  try {
-    // In a real app, we'd get organization_id from the user profile
-    // For now, we assume it's handled by Supabase or a default
-    await customerStore.addCustomer({
-      ...values,
-      organization_id: authStore.organizationId
-    })
+  const result = await customerStore.addCustomer({
+    ...values,
+    organization_id: authStore.organizationId
+  })
+  if (result.ok) {
     router.push('/customers')
-  } catch (error) {
-    alert('Failed to save customer')
-  } finally {
-    isSaving.value = false
   }
+  isSaving.value = false
 }
 </script>
 
