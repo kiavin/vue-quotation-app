@@ -3,6 +3,7 @@ import { ref, computed } from 'vue'
 import { invoiceService, type Invoice } from '@/services/invoiceService'
 import type { Quotation } from '@/services/quotationService'
 import { useAuthStore } from '@/stores/auth'
+import { notify } from '@/lib/notify'
 
 export const useInvoicesStore = defineStore('invoices', () => {
   const invoices = ref<(Invoice & { customers?: any })[]>([])
@@ -20,72 +21,71 @@ export const useInvoicesStore = defineStore('invoices', () => {
     if (!authStore.organizationId) return
     loading.value = true
     error.value = null
-    try {
-      invoices.value = await invoiceService.getInvoices(authStore.organizationId)
-    } catch (err: any) {
-      error.value = err.message
-    } finally {
-      loading.value = false
+    const result = await invoiceService.getInvoices(authStore.organizationId)
+    if (result.ok) {
+      invoices.value = result.data!
+    } else {
+      error.value = result.error
+      notify.handleResponse(result)
     }
+    loading.value = false
   }
 
   async function loadInvoice(id: string) {
     loading.value = true
     error.value = null
-    try {
-      const data = await invoiceService.getInvoiceById(id)
-      currentInvoice.value = data
-      return data
-    } catch (err: any) {
-      error.value = err.message
-      throw err
-    } finally {
-      loading.value = false
+    const result = await invoiceService.getInvoiceById(id)
+    if (result.ok) {
+      currentInvoice.value = result.data
+    } else {
+      error.value = result.error
+      notify.handleResponse(result)
     }
+    loading.value = false
+    return result
   }
 
   async function createFromQuotation(quotation: Quotation & { items: any[] }) {
     loading.value = true
     error.value = null
-    try {
-      const newInvoice = await invoiceService.createFromQuotation(quotation as any)
+    const result = await invoiceService.createFromQuotation(quotation as any)
+    notify.handleResponse(result)
+    if (result.ok) {
       await fetchInvoices()
-      return newInvoice
-    } catch (err: any) {
-      error.value = err.message
-      throw err
-    } finally {
-      loading.value = false
+    } else {
+      error.value = result.error
     }
+    loading.value = false
+    return result
   }
 
   async function updateStatus(id: string, status: Invoice['status']) {
     loading.value = true
-    try {
-      await invoiceService.updateStatus(id, status)
+    const result = await invoiceService.updateStatus(id, status)
+    notify.handleResponse(result)
+    if (result.ok) {
       if (currentInvoice.value?.id === id) {
         currentInvoice.value.status = status
       }
       await fetchInvoices()
-    } catch (err: any) {
-      error.value = err.message
-      throw err
-    } finally {
-      loading.value = false
+    } else {
+      error.value = result.error
     }
+    loading.value = false
+    return result
   }
 
   async function deleteInvoice(id: string) {
     loading.value = true
-    try {
-      await invoiceService.deleteInvoice(id)
+    const result = await invoiceService.deleteInvoice(id)
+    notify.handleResponse(result)
+    if (result.ok) {
       await fetchInvoices()
-    } catch (err: any) {
-      error.value = err.message
-      throw err
-    } finally {
-      loading.value = false
+    } else {
+      error.value = result.error
     }
+    loading.value = false
+    return result
   }
 
   return {
