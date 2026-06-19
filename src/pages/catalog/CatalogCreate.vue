@@ -16,17 +16,14 @@ const isSaving = ref(false)
 
 const handleSave = async (values: Item) => {
   isSaving.value = true
-  try {
-    await catalogStore.addItem({
-      ...values,
-      organization_id: authStore.organizationId
-    })
+  const result = await catalogStore.addItem({
+    ...values,
+    organization_id: authStore.organizationId
+  })
+  if (result.ok) {
     router.push('/catalog')
-  } catch (error) {
-    alert('Failed to save catalog item')
-  } finally {
-    isSaving.value = false
   }
+  isSaving.value = false
 }
 </script>
 
