@@ -4,8 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { invoiceService } from '@/services/invoiceService'
 import InvoiceTemplateBasic from '@/templates/documents/InvoiceTemplateBasic.vue'
 import { Button } from '@/components/ui/button'
-import { Printer, ChevronLeft, Download } from 'lucide-vue-next'
 import { pdfService } from '@/services/pdfService'
+import { notify } from '@/lib/notify'
 
 import type { Invoice } from '@/services/invoiceService'
 
@@ -16,18 +16,20 @@ const isLoading = ref(true)
 
 onMounted(async () => {
   const id = route.params.id as string
-  try {
-    invoice.value = await invoiceService.getInvoiceById(id)
+  const result = await invoiceService.getInvoiceById(id)
+  
+  if (result.ok && result.data) {
+    invoice.value = result.data
     if (route.query.print === 'true') {
       setTimeout(() => {
         pdfService.print()
       }, 500)
     }
-  } catch (error) {
-    console.error('Failed to load invoice:', error)
-  } finally {
-    isLoading.value = false
+  } else {
+    notify.handleResponse(result)
   }
+  
+  isLoading.value = false
 })
 
 const handlePrint = () => {
