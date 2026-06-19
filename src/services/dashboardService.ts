@@ -1,4 +1,6 @@
-import { supabase, handleSupabaseError } from '@/lib/supabase'
+import { supabase, mapSupabaseError } from '@/lib/supabase'
+import { apiSuccess, apiError } from '@/types/api-response'
+import type { ApiResponse } from '@/types/api-response'
 
 export interface DashboardStats {
   totalRevenue: number
@@ -14,7 +16,7 @@ export const dashboardService = {
   /**
    * Get revenue statistics
    */
-  async getRevenueStats(organizationId: string) {
+  async getRevenueStats(organizationId: string): Promise<ApiResponse<{ totalRevenue: number; outstandingAmount: number }>> {
     try {
       const { data, error } = await supabase
         .from('invoices')
@@ -33,16 +35,19 @@ export const dashboardService = {
         .filter(inv => inv.status === 'sent' || inv.status === 'overdue')
         .reduce((sum, inv) => sum + (Number(inv.total) - Number(inv.amount_paid || 0)), 0)
 
-      return { totalRevenue, outstandingAmount }
+      return apiSuccess({ totalRevenue, outstandingAmount })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Load Failed',
+        message: 'Could not load revenue statistics.',
+      })
     }
   },
 
   /**
    * Get invoice statistics
    */
-  async getInvoiceStats(organizationId: string) {
+  async getInvoiceStats(organizationId: string): Promise<ApiResponse<{ invoicesCount: number }>> {
     try {
       const { count, error } = await supabase
         .from('invoices')
@@ -51,16 +56,19 @@ export const dashboardService = {
         .is('deleted_at', null)
 
       if (error) throw error
-      return { invoicesCount: count || 0 }
+      return apiSuccess({ invoicesCount: count || 0 })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Load Failed',
+        message: 'Could not load invoice statistics.',
+      })
     }
   },
 
   /**
    * Get quotation statistics
    */
-  async getQuotationStats(organizationId: string) {
+  async getQuotationStats(organizationId: string): Promise<ApiResponse<{ quotationsCount: number }>> {
     try {
       const { count, error } = await supabase
         .from('quotations')
@@ -69,16 +77,19 @@ export const dashboardService = {
         .is('deleted_at', null)
 
       if (error) throw error
-      return { quotationsCount: count || 0 }
+      return apiSuccess({ quotationsCount: count || 0 })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Load Failed',
+        message: 'Could not load quotation statistics.',
+      })
     }
   },
 
   /**
    * Get customer statistics
    */
-  async getCustomerStats(organizationId: string) {
+  async getCustomerStats(organizationId: string): Promise<ApiResponse<{ customersCount: number }>> {
     try {
       const { count, error } = await supabase
         .from('customers')
@@ -87,16 +98,19 @@ export const dashboardService = {
         .is('deleted_at', null)
 
       if (error) throw error
-      return { customersCount: count || 0 }
+      return apiSuccess({ customersCount: count || 0 })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Load Failed',
+        message: 'Could not load customer statistics.',
+      })
     }
   },
 
   /**
    * Get item statistics
    */
-  async getItemStats(organizationId: string) {
+  async getItemStats(organizationId: string): Promise<ApiResponse<{ itemsCount: number }>> {
     try {
       const { count, error } = await supabase
         .from('items')
@@ -105,16 +119,19 @@ export const dashboardService = {
         .is('deleted_at', null)
 
       if (error) throw error
-      return { itemsCount: count || 0 }
+      return apiSuccess({ itemsCount: count || 0 })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Load Failed',
+        message: 'Could not load item statistics.',
+      })
     }
   },
 
   /**
    * Get member statistics
    */
-  async getMemberStats(organizationId: string) {
+  async getMemberStats(organizationId: string): Promise<ApiResponse<{ membersCount: number }>> {
     try {
       const { count, error } = await supabase
         .from('organization_members')
@@ -122,16 +139,19 @@ export const dashboardService = {
         .eq('organization_id', organizationId)
 
       if (error) throw error
-      return { membersCount: count || 0 }
+      return apiSuccess({ membersCount: count || 0 })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Load Failed',
+        message: 'Could not load team statistics.',
+      })
     }
   },
 
   /**
    * Get aggregated dashboard statistics
    */
-  async getAggregatedStats(organizationId: string): Promise<DashboardStats> {
+  async getAggregatedStats(organizationId: string): Promise<ApiResponse<DashboardStats>> {
     try {
       const [revenue, invoices, quotations, customers, items, members] = await Promise.all([
         this.getRevenueStats(organizationId),
@@ -142,16 +162,29 @@ export const dashboardService = {
         this.getMemberStats(organizationId)
       ])
 
-      return {
-        ...revenue,
-        ...invoices,
-        ...quotations,
-        ...customers,
-        ...items,
-        ...members
+      // If any sub-call failed, surface the first error
+      const failed = [revenue, invoices, quotations, customers, items, members].find(r => !r.ok)
+      if (failed) {
+        return apiError(failed.error || 'Partial load failure', {
+          title: 'Dashboard Error',
+          message: 'Some dashboard data could not be loaded.',
+          severity: 'warning',
+        })
       }
+
+      return apiSuccess({
+        ...revenue.data!,
+        ...invoices.data!,
+        ...quotations.data!,
+        ...customers.data!,
+        ...items.data!,
+        ...members.data!,
+      })
     } catch (error) {
-      throw error // Let the caller handle it
+      return apiError(error, {
+        title: 'Dashboard Error',
+        message: 'Could not load dashboard statistics.',
+      })
     }
   }
 }
