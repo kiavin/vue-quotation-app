@@ -2,6 +2,7 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { catalogService, type Item, type Category } from '@/services/catalogService'
 import { useAuthStore } from '@/stores/auth'
+import { notify } from '@/lib/notify'
 
 export const useCatalogStore = defineStore('catalog', () => {
   const items = ref<(Item & { categories: { name: string } | null })[]>([])
@@ -17,102 +18,105 @@ export const useCatalogStore = defineStore('catalog', () => {
     }
     loading.value = true
     error.value = null
-    try {
-      console.log('API Request: getItems and getCategories for', authStore.organizationId)
-      const [fetchedItems, fetchedCategories] = await Promise.all([
-        catalogService.getItems(authStore.organizationId),
-        catalogService.getCategories(authStore.organizationId)
-      ])
-      console.log('API Response:', { itemsCount: fetchedItems.length, categoriesCount: fetchedCategories.length })
-      items.value = fetchedItems
-      categories.value = fetchedCategories
-    } catch (err: any) {
-      console.error('fetchCatalog Error:', err)
-      error.value = err.message
-    } finally {
-      loading.value = false
+
+    const [itemsResult, categoriesResult] = await Promise.all([
+      catalogService.getItems(authStore.organizationId),
+      catalogService.getCategories(authStore.organizationId)
+    ])
+
+    if (itemsResult.ok) {
+      items.value = itemsResult.data!
+    } else {
+      error.value = itemsResult.error
+      notify.handleResponse(itemsResult)
     }
+
+    if (categoriesResult.ok) {
+      categories.value = categoriesResult.data!
+    } else {
+      error.value = categoriesResult.error
+      notify.handleResponse(categoriesResult)
+    }
+
+    loading.value = false
   }
 
   async function addItem(item: Item) {
     loading.value = true
-    try {
-      const newItem = await catalogService.createItem(item)
-      // Re-fetch to get category join data
+    const result = await catalogService.createItem(item)
+    notify.handleResponse(result)
+    if (result.ok) {
       await fetchCatalog()
-      return newItem
-    } catch (err: any) {
-      error.value = err.message
-      throw err
-    } finally {
-      loading.value = false
+    } else {
+      error.value = result.error
     }
+    loading.value = false
+    return result
   }
 
   async function updateItem(id: string, updates: Partial<Item>) {
     loading.value = true
-    try {
-      await catalogService.updateItem(id, updates)
+    const result = await catalogService.updateItem(id, updates)
+    notify.handleResponse(result)
+    if (result.ok) {
       await fetchCatalog()
-    } catch (err: any) {
-      error.value = err.message
-      throw err
-    } finally {
-      loading.value = false
+    } else {
+      error.value = result.error
     }
+    loading.value = false
+    return result
   }
 
   async function removeItem(id: string) {
     loading.value = true
-    try {
-      await catalogService.deleteItem(id)
+    const result = await catalogService.deleteItem(id)
+    notify.handleResponse(result)
+    if (result.ok) {
       items.value = items.value.filter(i => i.id !== id)
-    } catch (err: any) {
-      error.value = err.message
-      throw err
-    } finally {
-      loading.value = false
+    } else {
+      error.value = result.error
     }
+    loading.value = false
+    return result
   }
 
   async function addCategory(category: Partial<Category>) {
     loading.value = true
-    try {
-      const newCategory = await catalogService.createCategory(category)
+    const result = await catalogService.createCategory(category)
+    notify.handleResponse(result)
+    if (result.ok) {
       await fetchCatalog()
-      return newCategory
-    } catch (err: any) {
-      error.value = err.message
-      throw err
-    } finally {
-      loading.value = false
+    } else {
+      error.value = result.error
     }
+    loading.value = false
+    return result
   }
 
   async function updateCategory(id: string, updates: Partial<Category>) {
     loading.value = true
-    try {
-      await catalogService.updateCategory(id, updates)
+    const result = await catalogService.updateCategory(id, updates)
+    notify.handleResponse(result)
+    if (result.ok) {
       await fetchCatalog()
-    } catch (err: any) {
-      error.value = err.message
-      throw err
-    } finally {
-      loading.value = false
+    } else {
+      error.value = result.error
     }
+    loading.value = false
+    return result
   }
 
   async function removeCategory(id: string) {
     loading.value = true
-    try {
-      await catalogService.deleteCategory(id)
+    const result = await catalogService.deleteCategory(id)
+    notify.handleResponse(result)
+    if (result.ok) {
       await fetchCatalog()
-    } catch (err: any) {
-      error.value = err.message
-      throw err
-    } finally {
-      loading.value = false
+    } else {
+      error.value = result.error
     }
+    loading.value = false
+    return result
   }
 
   return {
