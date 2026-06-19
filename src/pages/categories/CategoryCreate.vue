@@ -22,17 +22,14 @@ const form = ref({
 const handleSave = async () => {
   if (!authStore.organizationId) return
   isSaving.value = true
-  try {
-    await catalogStore.addCategory({
-      ...form.value,
-      organization_id: authStore.organizationId
-    })
+  const result = await catalogStore.addCategory({
+    ...form.value,
+    organization_id: authStore.organizationId
+  })
+  if (result.ok) {
     router.push('/categories')
-  } catch (error) {
-    alert('Failed to save category')
-  } finally {
-    isSaving.value = false
   }
+  isSaving.value = false
 }
 </script>
 
