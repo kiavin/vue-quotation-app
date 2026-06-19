@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { notify } from "@/lib/notify";
 
 const router = useRouter();
 const route = useRoute();
@@ -85,7 +86,7 @@ onMounted(async () => {
         form.status = quotationStore.currentQuotation.status;
       }
     } catch (error) {
-      alert("Failed to load quotation");
+      notify.toast('error', 'Load Failed', 'Could not load the quotation.');
       router.push("/quotations");
     }
   }
@@ -102,39 +103,37 @@ const handleAddItem = (catalogItem: Item) => {
 };
 
 const handleSave = async (status: typeof form.status = "draft") => {
-  if (!form.customer_id) return alert("Please select a customer");
+  if (!form.customer_id) return notify.toast('warning', 'Missing Customer', 'Please select a customer before saving.');
   if (quotationStore.currentItems.length === 0)
-    return alert("Please add at least one item");
+    return notify.toast('warning', 'No Items', 'Please add at least one item.');
 
   isSaving.value = true;
-  try {
-    const quotationData = {
-      ...form,
-      status,
-      organization_id: authStore.organizationId || "",
-      subtotal: quotationStore.subtotal,
-      transport_charge: quotationStore.transportCharge,
-      tax_rate: quotationStore.taxRate,
-      tax_amount: quotationStore.taxAmount,
-      total: quotationStore.grandTotal,
-      id: isEditing.value ? (route.params.id as string) : undefined,
-    };
+  const quotationData = {
+    ...form,
+    status,
+    organization_id: authStore.organizationId || "",
+    subtotal: quotationStore.subtotal,
+    transport_charge: quotationStore.transportCharge,
+    tax_rate: quotationStore.taxRate,
+    tax_amount: quotationStore.taxAmount,
+    total: quotationStore.grandTotal,
+    id: isEditing.value ? (route.params.id as string) : undefined,
+  };
 
-    await quotationStore.saveQuotation(quotationData as Quotation);
+  const result = await quotationStore.saveQuotation(quotationData as Quotation);
 
+  if (result?.ok) {
     if (status === "sent") {
       const savedId = quotationStore.currentQuotation?.id;
       if (savedId) {
         router.push(`/quotations/${savedId}/print?send=true`);
+        isSaving.value = false;
         return;
       }
     }
     router.push("/quotations");
-  } catch (error) {
-    alert("Failed to save quotation");
-  } finally {
-    isSaving.value = false;
   }
+  isSaving.value = false;
 };
 
 const formatCurrency = (val: number) => {
