@@ -2,6 +2,7 @@
 import { onMounted, ref } from "vue";
 import { useRouter } from "vue-router";
 import { organizationService } from "@/services/organizationService";
+import { notify } from "@/lib/notify";
 import { Plus, Settings2 } from "lucide-vue-next";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -20,14 +21,13 @@ const organizations = ref<Organization[]>([]);
 const isLoading = ref(true);
 
 onMounted(async () => {
-  try {
-    organizations.value =
-      await organizationService.getUserOrganizationsWithStats();
-  } catch (error) {
-    console.error("Failed to load organizations", error);
-  } finally {
-    isLoading.value = false;
+  const result = await organizationService.getUserOrganizationsWithStats();
+  if (result.ok && result.data) {
+    organizations.value = result.data;
+  } else {
+    notify.handleResponse(result);
   }
+  isLoading.value = false;
 });
 </script>
 
