@@ -16,6 +16,7 @@ import {
 } from '@/components/ui/table'
 import QuotationStatusBadge from '@/components/shared/QuotationStatusBadge.vue'
 import { quotationService } from '@/services/quotationService'
+import { notify } from '@/lib/notify'
 
 const router = useRouter()
 const quotationStore = useQuotationStore()
@@ -55,12 +56,18 @@ const handleEdit = (id?: string) => {
 
 const handleDelete = async (id?: string) => {
   if (!id) return
-  if (confirm('Are you sure you want to delete this quotation?')) {
-    try {
-      await quotationService.deleteQuotation(id)
+  
+  const isConfirmed = await notify.confirm(
+    'Delete Quotation',
+    'Are you sure you want to delete this quotation? This action cannot be undone.',
+    { confirmText: 'Yes, delete', icon: 'warning' }
+  )
+
+  if (isConfirmed) {
+    const result = await quotationService.deleteQuotation(id)
+    notify.handleResponse(result)
+    if (result.ok) {
       await quotationStore.fetchQuotations()
-    } catch (error) {
-      alert('Failed to delete quotation')
     }
   }
 }
