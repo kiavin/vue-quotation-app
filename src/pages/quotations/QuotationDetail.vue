@@ -40,6 +40,7 @@ interface Quotation {
   organization_id: string
   customer_id: string
   number: string
+  title?: string
   status: 'draft' | 'sent' | 'approved' | 'rejected'
   date: string
   expiry_date?: string 
@@ -149,6 +150,7 @@ const handleConvertToInvoice = async () => {
         </Button>
         <div v-if="quotation">
           <h2 class="text-3xl font-bold tracking-tight text-slate-900">{{ quotation.number }}</h2>
+          <p v-if="quotation.title" class="text-sm text-slate-500 mt-0.5">{{ quotation.title }}</p>
           <div class="flex items-center gap-2 mt-1">
             <QuotationStatusBadge :status="quotation.status" />
             <span class="text-slate-500 text-sm">Issued on {{ formatDate(quotation.date) }}</span>
