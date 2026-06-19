@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { organizationService } from '@/services/organizationService'
+import { notify } from '@/lib/notify'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -24,15 +25,14 @@ const handleSetup = async () => {
   if (!authStore.user) return
 
   isLoading.value = true
-  try {
-    await organizationService.setupOrganization(form.value)
+  const result = await organizationService.setupOrganization(form.value)
+  notify.handleResponse(result)
+  
+  if (result.ok) {
     await authStore.fetchProfileAndOrganization()
     router.push('/')
-  } catch (error) {
-    alert('Failed to setup organization')
-  } finally {
-    isLoading.value = false
   }
+  isLoading.value = false
 }
 </script>
 
