@@ -61,7 +61,14 @@ export const useQuotationStore = defineStore('quotations', () => {
   }
 
   function addItem(item: QuotationItem) {
-    currentItems.value.push(item)
+    const existing = item.item_id
+      ? currentItems.value.find(i => i.item_id === item.item_id)
+      : null
+    if (existing) {
+      existing.quantity += 1
+    } else {
+      currentItems.value.push(item)
+    }
   }
 
   function removeItem(index: number) {
