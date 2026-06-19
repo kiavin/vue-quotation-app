@@ -3,6 +3,7 @@ import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { organizationService } from '@/services/organizationService'
 import { ChevronLeft, Loader2, Building, Mail, Phone, Calendar } from 'lucide-vue-next'
+import { notify } from '@/lib/notify'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import type { Organization } from '@/types/organization'
@@ -15,14 +16,14 @@ const organization = ref<Organization | null>(null)
 const isLoading = ref(true)
 
 onMounted(async () => {
-  try {
-    organization.value = await organizationService.getOrganization(orgId)
-  } catch (error) {
-    alert('Failed to load organization')
+  const result = await organizationService.getOrganization(orgId)
+  if (result.ok && result.data) {
+    organization.value = result.data
+  } else {
+    notify.handleResponse(result)
     router.push('/organizations')
-  } finally {
-    isLoading.value = false
   }
+  isLoading.value = false
 })
 
 const formatDate = (date: string) => new Date(date).toLocaleDateString()
