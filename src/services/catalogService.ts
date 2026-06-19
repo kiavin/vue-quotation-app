@@ -1,4 +1,6 @@
-import { supabase, handleSupabaseError } from '@/lib/supabase'
+import { supabase, mapSupabaseError } from '@/lib/supabase'
+import { apiSuccess, apiError } from '@/types/api-response'
+import type { ApiResponse } from '@/types/api-response'
 
 export interface Category {
   id: string
@@ -22,7 +24,7 @@ export const catalogService = {
   /**
    * Get all items for the current organization
    */
-  async getItems(organizationId: string) {
+  async getItems(organizationId: string): Promise<ApiResponse<(Item & { categories: { name: string } | null })[]>> {
     try {
       const { data, error } = await supabase
         .from('items')
@@ -36,16 +38,19 @@ export const catalogService = {
         .order('name', { ascending: true })
       
       if (error) throw error
-      return data as (Item & { categories: { name: string } | null })[]
+      return apiSuccess(data as (Item & { categories: { name: string } | null })[])
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Load Failed',
+        message: 'Could not load catalog items.',
+      })
     }
   },
 
   /**
    * Get all categories for the current organization
    */
-  async getCategories(organizationId: string) {
+  async getCategories(organizationId: string): Promise<ApiResponse<Category[]>> {
     try {
       const { data, error } = await supabase
         .from('categories')
@@ -54,16 +59,19 @@ export const catalogService = {
         .order('name', { ascending: true })
       
       if (error) throw error
-      return data as Category[]
+      return apiSuccess(data as Category[])
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Load Failed',
+        message: 'Could not load categories.',
+      })
     }
   },
 
   /**
    * Create a new category
    */
-  async createCategory(category: Partial<Category>) {
+  async createCategory(category: Partial<Category>): Promise<ApiResponse<Category>> {
     try {
       const { data, error } = await supabase
         .from('categories')
@@ -72,16 +80,23 @@ export const catalogService = {
         .single()
       
       if (error) throw error
-      return data as Category
+      return apiSuccess(data as Category, {
+        type: 'toast',
+        title: 'Category Created',
+        message: `"${data.name}" category has been added.`,
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Save Failed',
+        message: 'Could not create the category.',
+      })
     }
   },
 
   /**
    * Update an existing category
    */
-  async updateCategory(id: string, updates: Partial<Category>) {
+  async updateCategory(id: string, updates: Partial<Category>): Promise<ApiResponse<Category>> {
     try {
       const { data, error } = await supabase
         .from('categories')
@@ -91,16 +106,23 @@ export const catalogService = {
         .single()
       
       if (error) throw error
-      return data as Category
+      return apiSuccess(data as Category, {
+        type: 'toast',
+        title: 'Category Updated',
+        message: `"${data.name}" has been updated.`,
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Update Failed',
+        message: 'Could not update the category.',
+      })
     }
   },
 
   /**
    * Delete a category
    */
-  async deleteCategory(id: string) {
+  async deleteCategory(id: string): Promise<ApiResponse<boolean>> {
     try {
       const { error } = await supabase
         .from('categories')
@@ -108,16 +130,23 @@ export const catalogService = {
         .eq('id', id)
       
       if (error) throw error
-      return true
+      return apiSuccess(true, {
+        type: 'toast',
+        title: 'Category Deleted',
+        message: 'The category has been removed.',
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Delete Failed',
+        message: 'Could not delete the category. It may still have items assigned.',
+      })
     }
   },
 
   /**
    * Create a new item
    */
-  async createItem(item: Item) {
+  async createItem(item: Item): Promise<ApiResponse<Item>> {
     try {
       const itemData = { ...item }
       if (itemData.category_id === '') {
@@ -131,16 +160,23 @@ export const catalogService = {
         .single()
       
       if (error) throw error
-      return data as Item
+      return apiSuccess(data as Item, {
+        type: 'toast',
+        title: 'Item Created',
+        message: `"${data.name}" has been added to the catalog.`,
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Save Failed',
+        message: 'Could not create the catalog item.',
+      })
     }
   },
 
   /**
    * Update an existing item
    */
-  async updateItem(id: string, updates: Partial<Item>) {
+  async updateItem(id: string, updates: Partial<Item>): Promise<ApiResponse<Item>> {
     try {
       const updateData = { ...updates }
       if (updateData.category_id === '') {
@@ -155,16 +191,23 @@ export const catalogService = {
         .single()
       
       if (error) throw error
-      return data as Item
+      return apiSuccess(data as Item, {
+        type: 'toast',
+        title: 'Item Updated',
+        message: `"${data.name}" has been updated.`,
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Update Failed',
+        message: 'Could not update the catalog item.',
+      })
     }
   },
 
   /**
    * Delete an item (hard delete for catalog items typically)
    */
-  async deleteItem(id: string) {
+  async deleteItem(id: string): Promise<ApiResponse<boolean>> {
     try {
       const { error } = await supabase
         .from('items')
@@ -172,9 +215,16 @@ export const catalogService = {
         .eq('id', id)
       
       if (error) throw error
-      return true
+      return apiSuccess(true, {
+        type: 'toast',
+        title: 'Item Deleted',
+        message: 'The catalog item has been removed.',
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Delete Failed',
+        message: 'Could not delete the catalog item.',
+      })
     }
   }
 }
