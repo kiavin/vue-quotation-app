@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button'
 import { Printer, ChevronLeft, Download, Send } from 'lucide-vue-next'
 import { pdfService } from '@/services/pdfService'
 import SendEmailModal from '@/components/shared/SendEmailModal.vue'
+import { notify } from '@/lib/notify'
 
 import type { Quotation } from '@/services/quotationService'
 
@@ -24,19 +25,21 @@ const defaultMessage = ref('')
 
 onMounted(async () => {
   const id = route.params.id as string
-  try {
-    quotation.value = await quotationService.getQuotationById(id)
+  isLoading.value = true
+  const result = await quotationService.getQuotationById(id)
+  
+  if (result.ok && result.data) {
+    quotation.value = result.data
     // If the URL has ?print=true, trigger print after loading
     if (route.query.print === 'true') {
       setTimeout(() => {
         pdfService.print()
       }, 500)
     }
-  } catch (error) {
-    console.error('Failed to load quotation:', error)
-  } finally {
-    isLoading.value = false
+  } else {
+    notify.handleResponse(result)
   }
+  isLoading.value = false
 })
 
 const handlePrint = () => {
@@ -48,7 +51,7 @@ const openSendEmailModal = () => {
   
   const customer = (quotation.value as any).customers
   if (!customer || !customer.email) {
-    alert('This quotation is assigned to a customer without an email address.')
+    notify.toast('warning', 'No Email', 'This quotation is assigned to a customer without an email address.')
     return
   }
 
