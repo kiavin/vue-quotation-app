@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { customerService, type Customer } from '@/services/customerService'
+import { notify } from '@/lib/notify'
 import { ChevronLeft, Edit, Mail, Phone, MapPin, Hash } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
@@ -14,14 +15,15 @@ const isLoading = ref(true)
 
 onMounted(async () => {
   const id = route.params.id as string
-  try {
-    customer.value = await customerService.getCustomerById(id)
-  } catch (error) {
-    alert('Failed to load customer')
+  isLoading.value = true
+  const result = await customerService.getCustomerById(id)
+  if (result.ok && result.data) {
+    customer.value = result.data
+  } else {
+    notify.handleResponse(result)
     router.push('/customers')
-  } finally {
-    isLoading.value = false
   }
+  isLoading.value = false
 })
 </script>
 
