@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { authService } from '@/services/authService'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
+import { notify } from '@/lib/notify'
 
 const router = useRouter()
 const email = ref('')
@@ -15,24 +16,20 @@ const handleLogin = async () => {
   isLoading.value = true
   errorMsg.value = ''
   
-  try {
-    const { error } = await authService.signIn({
-      email: email.value,
-      password: password.value,
-    })
+  const result = await authService.signIn({
+    email: email.value,
+    password: password.value,
+  })
 
-    
-
-    if (error) {
-      errorMsg.value = error.message
-    } else {
-      router.push({ name: 'dashboard' })
-    }
-  } catch (err: any) {
-    errorMsg.value = err.message || 'An error occurred during login'
-  } finally {
-    isLoading.value = false
+  if (!result.ok) {
+    errorMsg.value = result.error || 'An error occurred during login'
+    notify.handleResponse(result)
+  } else {
+    notify.handleResponse(result)
+    router.push({ name: 'dashboard' })
   }
+  
+  isLoading.value = false
 }
 
 const loginWithGoogle = async () => {
