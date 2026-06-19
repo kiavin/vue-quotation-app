@@ -3,6 +3,7 @@ import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useCatalogStore } from '@/stores/catalog'
 import { Plus, Edit2, Trash2, Search } from 'lucide-vue-next'
+import { notify } from '@/lib/notify'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
@@ -24,7 +25,12 @@ onMounted(async () => {
 })
 
 const handleDelete = async (id: string) => {
-  if (confirm('Are you sure you want to delete this category? Items in this category will become uncategorized.')) {
+  const isConfirmed = await notify.confirm(
+    'Delete Category',
+    'Are you sure you want to delete this category? Items in this category will become uncategorized.',
+    { confirmText: 'Yes, delete', icon: 'warning' }
+  )
+  if (isConfirmed) {
     await catalogStore.removeCategory(id)
   }
 }
