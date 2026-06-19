@@ -30,7 +30,8 @@ const filteredQuotations = computed(() => {
   const query = searchQuery.value.toLowerCase()
   return quotationStore.quotations.filter(q => 
     q.number.toLowerCase().includes(query) || 
-    q.customers?.name.toLowerCase().includes(query)
+    q.customers?.name.toLowerCase().includes(query) ||
+    (q.title && q.title.toLowerCase().includes(query))
   )
 })
 
@@ -85,7 +86,7 @@ const handleDelete = async (id?: string) => {
             <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <Input 
               v-model="searchQuery" 
-              placeholder="Search by number or customer..." 
+              placeholder="Search by number, title, or customer..." 
               class="pl-9"
             />
           </div>
@@ -109,7 +110,12 @@ const handleDelete = async (id?: string) => {
             </TableHeader>
             <TableBody>
               <TableRow v-for="quo in filteredQuotations" :key="quo.id">
-                <TableCell class="font-medium">{{ quo.number }}</TableCell>
+                <TableCell class="font-medium">
+                  <div>
+                    <span>{{ quo.number }}</span>
+                    <p v-if="quo.title" class="text-xs text-slate-400 font-normal truncate max-w-[200px]">{{ quo.title }}</p>
+                  </div>
+                </TableCell>
                 <TableCell>{{ quo.customers?.name }}</TableCell>
                 <TableCell>
                   <div class="flex items-center gap-1.5 text-slate-500">
