@@ -6,6 +6,9 @@ import { useAuthStore } from './stores/auth'
 import { authService } from './services/authService'
 
 import './assets/css/main.css'
+import 'izitoast/dist/css/iziToast.min.css'
+import 'sweetalert2/dist/sweetalert2.min.css'
+import './assets/css/notify.css'
 
 const initApp = async () => {
   const app = createApp(App)
