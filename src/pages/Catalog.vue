@@ -12,6 +12,7 @@ import CatalogTable from '@/components/forms/CatalogTable.vue'
 import CategoryTable from '@/components/forms/CategoryTable.vue'
 import type { Item, Category } from '@/services/catalogService'
 import { cn } from '@/utils/utils'
+import { notify } from '@/lib/notify'
 
 const router = useRouter()
 const catalogStore = useCatalogStore()
@@ -64,12 +65,13 @@ const handleEditItem = (item: Item) => {
 }
 
 const handleDeleteItem = async (item: Item) => {
-  if (confirm(`Are you sure you want to delete ${item.name}?`)) {
-    try {
-      await catalogStore.removeItem(item.id!)
-    } catch (error) {
-      alert('Failed to delete item')
-    }
+  const isConfirmed = await notify.confirm(
+    'Delete Item',
+    `Are you sure you want to delete ${item.name}?`,
+    { confirmText: 'Yes, delete', icon: 'warning' }
+  )
+  if (isConfirmed) {
+    await catalogStore.removeItem(item.id!)
   }
 }
 
@@ -91,28 +93,29 @@ const openCategoryModal = (category?: Category) => {
 const handleSaveCategory = async () => {
   if (!categoryForm.value.name) return
   
-  try {
-    if (editingCategoryId.value) {
-      await catalogStore.updateCategory(editingCategoryId.value, categoryForm.value)
-    } else {
-      await catalogStore.addCategory({
-        ...categoryForm.value,
-        organization_id: authStore.organizationId
-      })
-    }
+  let result
+  if (editingCategoryId.value) {
+    result = await catalogStore.updateCategory(editingCategoryId.value, categoryForm.value)
+  } else {
+    result = await catalogStore.addCategory({
+      ...categoryForm.value,
+      organization_id: authStore.organizationId
+    })
+  }
+  
+  if (result.ok) {
     isCategoryModalOpen.value = false
-  } catch (error) {
-    alert('Failed to save category')
   }
 }
 
 const handleDeleteCategory = async (category: Category) => {
-  if (confirm(`Delete category "${category.name}"? This will not delete items in this category.`)) {
-    try {
-      await catalogStore.removeCategory(category.id)
-    } catch (error) {
-      alert('Failed to delete category')
-    }
+  const isConfirmed = await notify.confirm(
+    'Delete Category',
+    `Delete category "${category.name}"? This will not delete items in this category.`,
+    { confirmText: 'Yes, delete', icon: 'warning' }
+  )
+  if (isConfirmed) {
+    await catalogStore.removeCategory(category.id)
   }
 }
 </script>
