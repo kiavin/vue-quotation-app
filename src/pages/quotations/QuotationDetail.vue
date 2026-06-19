@@ -3,6 +3,7 @@ import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { quotationService } from '@/services/quotationService'
 import { useInvoicesStore } from '@/stores/invoices'
+import { notify } from '@/lib/notify'
 
 // Icons
 import { 
@@ -88,17 +89,16 @@ const canMarkAsSent = computed(() => {
 // Lifecycle
 onMounted(async () => {
   const id = route.params.id as string
-  try {
-    isLoading.value = true
-    quotation.value = await quotationService.getQuotationById(id)
-  } catch (error) {
-    console.error('Failed to load quotation:', error)
-    // TODO: Replace with a toast notification
-    alert('Failed to load quotation')
+  isLoading.value = true
+  const result = await quotationService.getQuotationById(id)
+  
+  if (result.ok && result.data) {
+    quotation.value = result.data
+  } else {
+    notify.handleResponse(result)
     router.push('/quotations')
-  } finally {
-    isLoading.value = false
   }
+  isLoading.value = false
 })
 
 // Utilities
@@ -114,30 +114,23 @@ const formatDate = (date: string) => {
 const handleStatusChange = async (status: Quotation['status']) => {
   if (!quotation.value) return
   
-  try {
-    await quotationService.updateStatus(quotation.value.id, status)
+  const result = await quotationService.updateStatus(quotation.value.id, status)
+  notify.handleResponse(result)
+  if (result.ok) {
     quotation.value.status = status
-  } catch (error) {
-    console.error(`Failed to update status to ${status}:`, error)
-    // TODO: Replace with a toast notification
-    alert('Failed to update status')
   }
 }
 
 const handleConvertToInvoice = async () => {
   if (!quotation.value) return
   
-  try {
-    isConverting.value = true
-    const invoice = await invoicesStore.createFromQuotation(quotation.value)
-    router.push(`/invoices/${invoice.id}`)
-  } catch (error) {
-    console.error('Failed to convert to invoice:', error)
-    // TODO: Replace with a toast notification
-    alert('Failed to convert to invoice')
-  } finally {
-    isConverting.value = false
+  isConverting.value = true
+  const result = await invoicesStore.createFromQuotation(quotation.value as any)
+  
+  if (result.ok && result.data) {
+    router.push(`/invoices/${result.data.id}`)
   }
+  isConverting.value = false
 }
 </script>
 
