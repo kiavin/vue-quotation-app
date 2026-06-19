@@ -26,6 +26,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import QuotationStatusBadge from '@/components/shared/QuotationStatusBadge.vue'
+import AppLoader from '@/components/shared/AppLoader.vue'
 import { 
   Table, 
   TableHeader, 
@@ -289,9 +290,8 @@ const handleConvertToInvoice = async () => {
       </div>
     </div>
 
-    <div v-else-if="isLoading" class="flex flex-col items-center justify-center p-12 space-y-4">
-      <Loader2 class="w-8 h-8 animate-spin text-slate-400" />
-      <p class="text-slate-500">Loading quotation details...</p>
+    <div v-else-if="isLoading" class="flex items-center justify-center min-h-[500px]">
+      <AppLoader message="Loading Quotation..." subtext="Retrieving quotation details and line items." />
     </div>
   </div>
 </template>
