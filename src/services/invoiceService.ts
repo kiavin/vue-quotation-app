@@ -138,6 +138,7 @@ export const invoiceService = {
 
       // 4. Insert Items
       const invoiceItems = quotation.items.map((item: QuotationItem) => ({
+        organization_id: quotation.organization_id,
         invoice_id: newInvoice.id,
         name: item.name,
         quantity: item.quantity,
