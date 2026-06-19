@@ -1,4 +1,6 @@
-import { supabase, handleSupabaseError } from '@/lib/supabase'
+import { supabase, mapSupabaseError } from '@/lib/supabase'
+import { apiSuccess, apiError } from '@/types/api-response'
+import type { ApiResponse } from '@/types/api-response'
 
 export interface Customer {
   id?: string
@@ -16,7 +18,7 @@ export const customerService = {
   /**
    * Get all customers for the current organization
    */
-  async getCustomers(organizationId: string) {
+  async getCustomers(organizationId: string): Promise<ApiResponse<Customer[]>> {
     try {
       const { data, error } = await supabase
         .from('customers')
@@ -26,16 +28,19 @@ export const customerService = {
         .order('name', { ascending: true })
       
       if (error) throw error
-      return data as Customer[]
+      return apiSuccess(data as Customer[])
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Load Failed',
+        message: 'Could not load your customers. Please try again.',
+      })
     }
   },
 
   /**
    * Get a single customer by ID
    */
-  async getCustomerById(id: string) {
+  async getCustomerById(id: string): Promise<ApiResponse<Customer>> {
     try {
       const { data, error } = await supabase
         .from('customers')
@@ -44,16 +49,19 @@ export const customerService = {
         .single()
       
       if (error) throw error
-      return data as Customer
+      return apiSuccess(data as Customer)
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Load Failed',
+        message: 'Could not load customer details.',
+      })
     }
   },
 
   /**
    * Create a new customer
    */
-  async createCustomer(customer: Customer) {
+  async createCustomer(customer: Customer): Promise<ApiResponse<Customer>> {
     try {
       const { data, error } = await supabase
         .from('customers')
@@ -62,16 +70,23 @@ export const customerService = {
         .single()
       
       if (error) throw error
-      return data as Customer
+      return apiSuccess(data as Customer, {
+        type: 'toast',
+        title: 'Customer Created',
+        message: `${data.name} has been added to your customer list.`,
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Save Failed',
+        message: 'Could not create the customer. Please try again.',
+      })
     }
   },
 
   /**
    * Update an existing customer
    */
-  async updateCustomer(id: string, updates: Partial<Customer>) {
+  async updateCustomer(id: string, updates: Partial<Customer>): Promise<ApiResponse<Customer>> {
     try {
       const { data, error } = await supabase
         .from('customers')
@@ -81,16 +96,23 @@ export const customerService = {
         .single()
       
       if (error) throw error
-      return data as Customer
+      return apiSuccess(data as Customer, {
+        type: 'toast',
+        title: 'Customer Updated',
+        message: `${data.name} has been updated successfully.`,
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Update Failed',
+        message: 'Could not update the customer. Please try again.',
+      })
     }
   },
 
   /**
    * Soft delete a customer
    */
-  async deleteCustomer(id: string) {
+  async deleteCustomer(id: string): Promise<ApiResponse<boolean>> {
     try {
       const { error } = await supabase
         .from('customers')
@@ -98,9 +120,16 @@ export const customerService = {
         .eq('id', id)
       
       if (error) throw error
-      return true
+      return apiSuccess(true, {
+        type: 'toast',
+        title: 'Customer Archived',
+        message: 'The customer has been archived successfully.',
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Delete Failed',
+        message: 'Could not archive the customer. Please try again.',
+      })
     }
   }
 }
