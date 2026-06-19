@@ -7,6 +7,7 @@ import { ChevronLeft, Edit, Mail, Phone, MapPin, Hash } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import AppLoader from '@/components/shared/AppLoader.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -115,8 +116,8 @@ onMounted(async () => {
       </div>
     </div>
     
-    <div v-else-if="isLoading" class="text-center p-12">
-      <p class="text-slate-500">Loading customer details...</p>
+    <div v-else-if="isLoading" class="flex items-center justify-center min-h-[500px]">
+      <AppLoader message="Loading Customer..." subtext="Retrieving customer details." />
     </div>
   </div>
 </template>
