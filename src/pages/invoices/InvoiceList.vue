@@ -13,6 +13,7 @@ import {
   TableRow, 
   TableCell 
 } from '@/components/ui/table'
+import { Skeleton } from '@/components/ui/skeleton'
 import InvoiceStatusBadge from '@/components/shared/InvoiceStatusBadge.vue'
 
 const router = useRouter()
@@ -71,28 +72,41 @@ const handleView = (id?: string) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          <TableRow v-for="invoice in invoicesStore.invoices" :key="invoice.id" class="cursor-pointer hover:bg-slate-50" @click="handleView(invoice.id)">
-            <TableCell class="font-medium">{{ invoice.number }}</TableCell>
-            <TableCell>{{ invoice.customers?.name }}</TableCell>
-            <TableCell>{{ formatDate(invoice.issue_date) }}</TableCell>
-            <TableCell>{{ formatDate(invoice.due_date) }}</TableCell>
-            <TableCell>{{ formatCurrency(invoice.total) }}</TableCell>
-            <TableCell>
-              <InvoiceStatusBadge :status="invoice.status" />
-            </TableCell>
-            <TableCell class="text-right" @click.stop>
-              <div class="flex justify-end gap-2">
-                <Button variant="ghost" size="icon" @click="handleView(invoice.id)">
-                  <Eye class="w-4 h-4" />
-                </Button>
-              </div>
-            </TableCell>
-          </TableRow>
-          <TableRow v-if="invoicesStore.invoices.length === 0">
-            <TableCell colspan="7" class="h-32 text-center text-slate-500">
-              No invoices found. Convert a quotation to get started.
-            </TableCell>
-          </TableRow>
+          <template v-if="invoicesStore.loading && invoicesStore.invoices.length === 0">
+            <TableRow v-for="i in 5" :key="i">
+              <TableCell><Skeleton class="h-5 w-24" /></TableCell>
+              <TableCell><Skeleton class="h-5 w-32" /></TableCell>
+              <TableCell><Skeleton class="h-5 w-24" /></TableCell>
+              <TableCell><Skeleton class="h-5 w-24" /></TableCell>
+              <TableCell><Skeleton class="h-5 w-20" /></TableCell>
+              <TableCell><Skeleton class="h-6 w-16 rounded-full" /></TableCell>
+              <TableCell class="text-right"><Skeleton class="h-8 w-8 ml-auto" /></TableCell>
+            </TableRow>
+          </template>
+          <template v-else>
+            <TableRow v-for="invoice in invoicesStore.invoices" :key="invoice.id" class="cursor-pointer hover:bg-slate-50" @click="handleView(invoice.id)">
+              <TableCell class="font-medium">{{ invoice.number }}</TableCell>
+              <TableCell>{{ invoice.customers?.name }}</TableCell>
+              <TableCell>{{ formatDate(invoice.issue_date) }}</TableCell>
+              <TableCell>{{ formatDate(invoice.due_date) }}</TableCell>
+              <TableCell>{{ formatCurrency(invoice.total) }}</TableCell>
+              <TableCell>
+                <InvoiceStatusBadge :status="invoice.status" />
+              </TableCell>
+              <TableCell class="text-right" @click.stop>
+                <div class="flex justify-end gap-2">
+                  <Button variant="ghost" size="icon" @click="handleView(invoice.id)">
+                    <Eye class="w-4 h-4" />
+                  </Button>
+                </div>
+              </TableCell>
+            </TableRow>
+            <TableRow v-if="invoicesStore.invoices.length === 0">
+              <TableCell colspan="7" class="h-32 text-center text-slate-500">
+                No invoices found. Convert a quotation to get started.
+              </TableCell>
+            </TableRow>
+          </template>
         </TableBody>
       </Table>
     </div>
