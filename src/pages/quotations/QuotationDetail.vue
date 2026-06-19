@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
-import { quotationService } from '@/services/quotationService'
+import { quotationService, type Quotation } from '@/services/quotationService'
 import { useInvoicesStore } from '@/stores/invoices'
 import { notify } from '@/lib/notify'
 
@@ -34,35 +34,6 @@ import {
   TableRow, 
   TableCell 
 } from '@/components/ui/table'
-
-// Ideally, this interface should be exported from a central `@/types` file.
-interface Quotation {
-  id: string
-  organization_id: string
-  customer_id: string
-  number: string
-  title?: string
-  status: 'draft' | 'sent' | 'approved' | 'rejected'
-  date: string
-  expiry_date?: string 
-  customers?: {
-    name: string
-    address?: string | null
-  }
-  items: Array<{
-    id: string
-    name: string
-    quantity: number
-    price: number
-    total: number
-  }>
-  notes?: string 
-  subtotal: number
-  transport_charge: number
-  tax_rate: number
-  tax_amount: number
-  total: number
-}
 
 const router = useRouter()
 const route = useRoute()
@@ -112,7 +83,7 @@ const formatDate = (date: string) => {
 
 // Actions
 const handleStatusChange = async (status: Quotation['status']) => {
-  if (!quotation.value) return
+  if (!quotation.value?.id) return
   
   const result = await quotationService.updateStatus(quotation.value.id, status)
   notify.handleResponse(result)
