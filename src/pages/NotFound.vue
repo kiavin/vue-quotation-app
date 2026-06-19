@@ -56,16 +56,6 @@ const router = useRouter()
 </template>
 
 <style scoped>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap');
-
-.font-heading {
-  font-family: 'Playfair Display', serif;
-}
-
-.font-body {
-  font-family: 'Inter', sans-serif;
-}
-
 @keyframes float {
   0% { transform: translateY(0px) rotate(0deg); }
   50% { transform: translateY(-10px) rotate(2deg); }
