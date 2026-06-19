@@ -14,6 +14,7 @@ import {
   TableRow, 
   TableCell 
 } from '@/components/ui/table'
+import { Skeleton } from '@/components/ui/skeleton'
 import QuotationStatusBadge from '@/components/shared/QuotationStatusBadge.vue'
 import { quotationService } from '@/services/quotationService'
 import { notify } from '@/lib/notify'
@@ -99,11 +100,7 @@ const handleDelete = async (id?: string) => {
           </div>
         </div>
 
-        <div v-if="quotationStore.loading && quotationStore.quotations.length === 0" class="p-12 text-center">
-          <p class="text-slate-500">Loading quotations...</p>
-        </div>
-
-        <div v-else>
+        <div class="border rounded-lg overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
@@ -116,7 +113,24 @@ const handleDelete = async (id?: string) => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              <TableRow v-for="quo in filteredQuotations" :key="quo.id">
+              <template v-if="quotationStore.loading && quotationStore.quotations.length === 0">
+                <TableRow v-for="i in 5" :key="i">
+                  <TableCell><Skeleton class="h-5 w-24" /></TableCell>
+                  <TableCell><Skeleton class="h-5 w-32" /></TableCell>
+                  <TableCell><Skeleton class="h-5 w-24" /></TableCell>
+                  <TableCell><Skeleton class="h-5 w-20" /></TableCell>
+                  <TableCell><Skeleton class="h-6 w-20 rounded-full" /></TableCell>
+                  <TableCell class="text-right">
+                    <div class="flex justify-end gap-2">
+                      <Skeleton class="h-8 w-8" />
+                      <Skeleton class="h-8 w-8" />
+                      <Skeleton class="h-8 w-8" />
+                    </div>
+                  </TableCell>
+                </TableRow>
+              </template>
+              <template v-else>
+                <TableRow v-for="quo in filteredQuotations" :key="quo.id">
                 <TableCell class="font-medium">
                   <div>
                     <span>{{ quo.number }}</span>
@@ -156,6 +170,7 @@ const handleDelete = async (id?: string) => {
                   </div>
                 </TableCell>
               </TableRow>
+              </template>
             </TableBody>
           </Table>
         </div>
