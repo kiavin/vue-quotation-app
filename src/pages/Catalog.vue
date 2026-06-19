@@ -176,12 +176,9 @@ const handleDeleteCategory = async (category: Category) => {
 
       <Card>
         <CardContent class="p-0">
-          <div v-if="catalogStore.loading && catalogStore.items.length === 0" class="p-8 text-center">
-            <p class="text-slate-500">Loading items...</p>
-          </div>
           <CatalogTable 
-            v-else
             :items="filteredItems" 
+            :is-loading="catalogStore.loading"
             @edit="handleEditItem"
             @delete="handleDeleteItem"
           />
