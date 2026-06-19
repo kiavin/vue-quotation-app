@@ -74,17 +74,14 @@ const handleDelete = async (customer: Customer) => {
           </div>
         </div>
         
-        <div v-if="customerStore.loading && customerStore.customers.length === 0" class="p-8 text-center">
-          <p class="text-slate-500">Loading customers...</p>
-        </div>
-        
-        <div v-else-if="customerStore.error" class="p-8 text-center text-red-500">
+        <div v-if="customerStore.error" class="p-8 text-center text-red-500">
           {{ customerStore.error }}
         </div>
 
         <div v-else>
           <CustomerTable 
             :customers="filteredCustomers" 
+            :is-loading="customerStore.loading"
             @edit="handleEdit"
             @view="handleView"
             @delete="handleDelete"
