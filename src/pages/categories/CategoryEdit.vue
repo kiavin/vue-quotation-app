@@ -39,17 +39,14 @@ onMounted(async () => {
 
 const handleSave = async () => {
   isSaving.value = true
-  try {
-    await catalogStore.updateCategory(categoryId, {
-      name: form.value.name,
-      description: form.value.description
-    })
+  const result = await catalogStore.updateCategory(categoryId, {
+    name: form.value.name,
+    description: form.value.description
+  })
+  if (result.ok) {
     router.push('/categories')
-  } catch (error) {
-    alert('Failed to save category')
-  } finally {
-    isSaving.value = false
   }
+  isSaving.value = false
 }
 </script>
 
