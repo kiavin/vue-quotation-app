@@ -1,8 +1,10 @@
-import { supabase, handleSupabaseError } from '@/lib/supabase'
+import { supabase, mapSupabaseError } from '@/lib/supabase'
+import { apiSuccess, apiError } from '@/types/api-response'
+import type { ApiResponse } from '@/types/api-response'
 import type { Organization } from '@/types/organization'
 
 export const organizationService = {
-  async getOrganization(organizationId: string) {
+  async getOrganization(organizationId: string): Promise<ApiResponse<Organization>> {
     try {
       const { data, error } = await supabase
         .from('organizations')
@@ -13,13 +15,16 @@ export const organizationService = {
       if (error) throw error
       if (!data) throw new Error('Organization not found or access denied by RLS.')
 
-      return data as Organization
+      return apiSuccess(data as Organization)
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Load Failed',
+        message: 'Could not load organization details.',
+      })
     }
   },
 
-  async updateOrganization(id: string, updates: Partial<Organization>) {
+  async updateOrganization(id: string, updates: Partial<Organization>): Promise<ApiResponse<Organization>> {
     try {
       const { data, error } = await supabase
         .from('organizations')
@@ -30,13 +35,20 @@ export const organizationService = {
 
       if (error) throw error
 
-      return data as Organization
+      return apiSuccess(data as Organization, {
+        type: 'toast',
+        title: 'Settings Saved',
+        message: 'Organization settings have been updated.',
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Update Failed',
+        message: 'Could not update organization settings.',
+      })
     }
   },
 
-  async uploadLogo(organizationId: string, file: File) {
+  async uploadLogo(organizationId: string, file: File): Promise<ApiResponse<string>> {
     try {
       const fileExt = file.name.split('.').pop()
       const fileName = `logo-${Date.now()}.${fileExt}`
@@ -56,13 +68,20 @@ export const organizationService = {
         .from('logos')
         .getPublicUrl(filePath)
 
-      return data.publicUrl
+      return apiSuccess(data.publicUrl, {
+        type: 'toast',
+        title: 'Logo Uploaded',
+        message: 'Your company logo has been updated.',
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Upload Failed',
+        message: 'Could not upload the logo. Please try a different file.',
+      })
     }
   },
 
-  async getUserOrganizationsWithStats() {
+  async getUserOrganizationsWithStats(): Promise<ApiResponse<any[]>> {
     try {
       const { data: orgs, error: orgsError } = await supabase
         .from('organizations')
@@ -91,13 +110,16 @@ export const organizationService = {
         })
       )
 
-      return orgsWithStats
+      return apiSuccess(orgsWithStats)
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Load Failed',
+        message: 'Could not load organizations.',
+      })
     }
   },
 
-  async setupOrganization(orgDetails: Partial<Organization>) {
+  async setupOrganization(orgDetails: Partial<Organization>): Promise<ApiResponse<Organization>> {
     try {
       const { data: newOrgId, error } = await supabase.rpc(
         'create_organization_onboarding',
@@ -115,9 +137,20 @@ export const organizationService = {
       // Safely handle cases where the RPC returns a record object instead of a scalar UUID
       const parsedId = typeof newOrgId === 'object' && newOrgId !== null ? (newOrgId as any).id || (newOrgId as any).organization_id : newOrgId
 
-      return await this.getOrganization(String(parsedId))
+      const orgResult = await this.getOrganization(String(parsedId))
+      if (!orgResult.ok) throw new Error(orgResult.error || 'Failed to fetch created organization')
+
+      return apiSuccess(orgResult.data!, {
+        type: 'toast',
+        title: 'Welcome!',
+        message: 'Your organization has been set up successfully.',
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        type: 'alert',
+        title: 'Setup Failed',
+        message: 'Could not set up your organization. Please try again.',
+      })
     }
   }
 }
