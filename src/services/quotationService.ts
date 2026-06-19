@@ -1,4 +1,6 @@
-import { supabase, handleSupabaseError } from '@/lib/supabase'
+import { supabase, mapSupabaseError } from '@/lib/supabase'
+import { apiSuccess, apiError } from '@/types/api-response'
+import type { ApiResponse } from '@/types/api-response'
 
 export interface Quotation {
   id?: string
@@ -37,7 +39,7 @@ export const quotationService = {
   /**
    * Get all quotations for the current organization
    */
-  async getQuotations(organizationId: string) {
+  async getQuotations(organizationId: string): Promise<ApiResponse<Quotation[]>> {
     try {
       const { data, error } = await supabase
         .from('quotations')
@@ -51,16 +53,19 @@ export const quotationService = {
         .order('created_at', { ascending: false })
       
       if (error) throw error
-      return data
+      return apiSuccess(data as Quotation[])
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Load Failed',
+        message: 'Could not load quotations.',
+      })
     }
   },
 
   /**
    * Get a single quotation by ID with its items
    */
-  async getQuotationById(id: string) {
+  async getQuotationById(id: string): Promise<ApiResponse<Quotation>> {
     try {
       const { data: quotation, error: qError } = await supabase
         .from('quotations')
@@ -80,16 +85,19 @@ export const quotationService = {
       
       if (iError) throw iError
 
-      return { ...quotation, items }
+      return apiSuccess({ ...quotation, items } as Quotation)
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Load Failed',
+        message: 'Could not load quotation details.',
+      })
     }
   },
 
   /**
    * Create a new quotation with items
    */
-  async createQuotation(quotation: Quotation, items: QuotationItem[]) {
+  async createQuotation(quotation: Quotation, items: QuotationItem[]): Promise<ApiResponse<Quotation>> {
     try {
       // 1. Insert quotation
       const { data: newQuotation, error: qError } = await supabase
@@ -113,16 +121,23 @@ export const quotationService = {
       
       if (iError) throw iError
 
-      return newQuotation
+      return apiSuccess(newQuotation as Quotation, {
+        type: 'toast',
+        title: 'Quotation Created',
+        message: `Quotation ${newQuotation.number} has been saved.`,
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Save Failed',
+        message: 'Could not create the quotation.',
+      })
     }
   },
 
   /**
    * Update an existing quotation and its items
    */
-  async updateQuotation(id: string, updates: Partial<Quotation>, items: QuotationItem[]) {
+  async updateQuotation(id: string, updates: Partial<Quotation>, items: QuotationItem[]): Promise<ApiResponse<boolean>> {
     try {
       // 1. Update quotation
       const { error: qError } = await supabase
@@ -152,16 +167,31 @@ export const quotationService = {
       
       if (iError) throw iError
 
-      return true
+      return apiSuccess(true, {
+        type: 'toast',
+        title: 'Quotation Updated',
+        message: 'Your quotation has been updated successfully.',
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Update Failed',
+        message: 'Could not update the quotation.',
+      })
     }
   },
 
   /**
    * Change quotation status
    */
-  async updateStatus(id: string, status: Quotation['status']) {
+  async updateStatus(id: string, status: Quotation['status']): Promise<ApiResponse<boolean>> {
+    const statusMessages: Record<string, string> = {
+      draft: 'Quotation moved back to draft.',
+      sent: 'Quotation has been marked as sent.',
+      approved: 'Quotation has been approved!',
+      rejected: 'Quotation has been rejected.',
+      expired: 'Quotation has been marked as expired.',
+    }
+
     try {
       const { error } = await supabase
         .from('quotations')
@@ -169,16 +199,24 @@ export const quotationService = {
         .eq('id', id)
       
       if (error) throw error
-      return true
+      return apiSuccess(true, {
+        type: 'toast',
+        severity: status === 'approved' ? 'success' : status === 'rejected' ? 'warning' : 'info',
+        title: 'Status Updated',
+        message: statusMessages[status] || 'Quotation status updated.',
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Status Update Failed',
+        message: 'Could not update the quotation status.',
+      })
     }
   },
 
   /**
    * Delete a quotation
    */
-  async deleteQuotation(id: string) {
+  async deleteQuotation(id: string): Promise<ApiResponse<boolean>> {
     try {
       const { error } = await supabase
         .from('quotations')
@@ -186,21 +224,16 @@ export const quotationService = {
         .eq('id', id)
       
       if (error) throw error
-      return true
+      return apiSuccess(true, {
+        type: 'toast',
+        title: 'Quotation Deleted',
+        message: 'The quotation has been removed.',
+      })
     } catch (error) {
-      return handleSupabaseError(error)
+      return apiError(mapSupabaseError(error), {
+        title: 'Delete Failed',
+        message: 'Could not delete the quotation.',
+      })
     }
   }
 }
-// pabase
-//         .from('quotations')
-//         .delete()
-//         .eq('id', id)
-      
-//       if (error) throw error
-//       return true
-//     } catch (error) {
-//       return handleSupabaseError(error)
-//     }
-//   }
-// }
