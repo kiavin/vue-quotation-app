@@ -19,24 +19,28 @@ const handleRegister = async () => {
   isLoading.value = true
   errorMsg.value = ''
   
-  const result = await authService.signUp({
-    fname: fname.value,
-    lname: lname.value,
-    username: username.value,
-    email: email.value,
-    password: password.value,
-  })
+  try {
+    const result = await authService.signUp({
+      fname: fname.value,
+      lname: lname.value,
+      username: username.value,
+      email: email.value,
+      password: password.value,
+    })
 
-  if (!result.ok) {
-    errorMsg.value = result.error || 'An error occurred during registration'
-    notify.handleResponse(result)
-  } else {
-    notify.handleResponse(result)
-    // Send user to login page after successful registration
-    router.push({ name: 'login' })
+    if (!result.ok) {
+      errorMsg.value = result.error || 'An error occurred during registration'
+      notify.handleResponse(result)
+    } else {
+      notify.handleResponse(result)
+      // Send user to login page after successful registration
+      await router.push({ name: 'login' })
+    }
+  } catch (err: any) {
+    errorMsg.value = err.message || 'An unexpected error occurred'
+  } finally {
+    isLoading.value = false
   }
-  
-  isLoading.value = false
 }
 
 const loginWithGoogle = async () => {

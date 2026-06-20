@@ -16,20 +16,32 @@ const handleLogin = async () => {
   isLoading.value = true
   errorMsg.value = ''
   
-  const result = await authService.signIn({
-    email: email.value,
-    password: password.value,
-  })
+  try {
+    const result = await authService.signIn({
+      email: email.value,
+      password: password.value,
+    })
 
-  if (!result.ok) {
-    errorMsg.value = result.error || 'An error occurred during login'
-    notify.handleResponse(result)
-  } else {
-    notify.handleResponse(result)
-    router.push({ name: 'dashboard' })
+    if (!result.ok) {
+      errorMsg.value = result.error || 'An error occurred during login'
+      notify.handleResponse(result)
+    } else {
+      notify.handleResponse(result)
+      
+      // Explicitly set the session so the router guard recognizes the user is authenticated
+      const { useAuthStore } = await import('@/stores/auth')
+      const authStore = useAuthStore()
+      if (result.data?.session) {
+        await authStore.setSession(result.data.session)
+      }
+      
+      await router.push({ name: 'dashboard' })
+    }
+  } catch (err: any) {
+    errorMsg.value = err.message || 'An unexpected error occurred'
+  } finally {
+    isLoading.value = false
   }
-  
-  isLoading.value = false
 }
 
 const loginWithGoogle = async () => {
