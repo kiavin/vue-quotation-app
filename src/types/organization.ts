@@ -28,4 +28,5 @@ export interface BrandingSnapshot {
   address: string | null
   phone: string | null
   email: string | null
+  currency: string
 }
