@@ -22,7 +22,9 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <Table>
+  <div>
+    <div class="hidden md:block">
+      <Table>
     <TableHeader>
       <TableRow>
         <TableHead>Category Name</TableHead>
@@ -54,6 +56,31 @@ const emit = defineEmits<{
           No categories found.
         </TableCell>
       </TableRow>
-    </TableBody>
-  </Table>
+      </TableBody>
+    </Table>
+    </div>
+
+    <!-- Mobile Card List -->
+    <div class="md:hidden divide-y">
+      <div v-for="cat in categories" :key="cat.id" class="p-4 space-y-3">
+        <div class="flex justify-between items-start gap-4">
+          <div>
+            <p class="font-medium">{{ cat.name }}</p>
+            <p class="text-sm text-slate-500 mt-0.5">{{ cat.description || 'No description' }}</p>
+          </div>
+          <div class="flex gap-1 shrink-0">
+            <Button variant="ghost" size="icon" class="h-8 w-8" @click="emit('edit', cat)">
+              <Edit class="w-4 h-4 text-slate-600" />
+            </Button>
+            <Button variant="ghost" size="icon" class="h-8 w-8" @click="emit('delete', cat)">
+              <Trash2 class="w-4 h-4 text-red-500" />
+            </Button>
+          </div>
+        </div>
+      </div>
+      <div v-if="categories.length === 0" class="p-8 text-center text-slate-500">
+        No categories found.
+      </div>
+    </div>
+  </div>
 </template>
