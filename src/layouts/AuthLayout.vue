@@ -1,9 +1,5 @@
 <script setup lang="ts">
 import { RouterView } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import { Loader2 } from 'lucide-vue-next'
-
-const authStore = useAuthStore()
 </script>
 
 <template>
@@ -18,11 +14,7 @@ const authStore = useAuthStore()
       </div>
       
       <div class="bg-white p-8 rounded-xl border shadow-sm">
-        <div v-if="authStore.loading" class="flex flex-col items-center justify-center py-8 text-slate-500">
-          <Loader2 class="w-8 h-8 animate-spin text-primary mb-4" />
-          <p>Verifying session...</p>
-        </div>
-        <RouterView v-else />
+        <RouterView />
       </div>
     </div>
   </div>

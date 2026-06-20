@@ -47,18 +47,28 @@ export const authService = {
   },
 
   async getSession() {
+    const SESSION_TIMEOUT_MS = 10000; // 10 seconds max wait
+
     try {
-      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !sessionData.session) throw sessionError || new Error('No session');
-      
-      // Verify the session with the server
-      const { data: userData, error: userError } = await supabase.auth.getUser();
-      if (userError || !userData.user) {
-        await supabase.auth.signOut();
-        return null;
-      }
-      
-      return sessionData.session;
+      const sessionPromise = (async () => {
+        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+        if (sessionError || !sessionData.session) throw sessionError || new Error('No session');
+        
+        // Verify the session with the server
+        const { data: userData, error: userError } = await supabase.auth.getUser();
+        if (userError || !userData.user) {
+          await supabase.auth.signOut();
+          return null;
+        }
+        
+        return sessionData.session;
+      })();
+
+      const timeoutPromise = new Promise<null>((_, reject) => {
+        setTimeout(() => reject(new Error('Session verification timed out')), SESSION_TIMEOUT_MS);
+      });
+
+      return await Promise.race([sessionPromise, timeoutPromise]);
     } catch (error) {
       console.error('Session error:', error);
       return null;
