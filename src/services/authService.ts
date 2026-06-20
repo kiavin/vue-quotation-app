@@ -46,14 +46,19 @@ export const authService = {
     }
   },
 
-  /**
-   * Get current session
-   */
   async getSession() {
     try {
-      const { data, error } = await supabase.auth.getSession();
-      if (error) throw error;
-      return data.session;
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+      if (sessionError || !sessionData.session) throw sessionError || new Error('No session');
+      
+      // Verify the session with the server
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) {
+        await supabase.auth.signOut();
+        return null;
+      }
+      
+      return sessionData.session;
     } catch (error) {
       console.error('Session error:', error);
       return null;
