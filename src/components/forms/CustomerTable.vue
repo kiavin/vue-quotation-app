@@ -26,7 +26,9 @@ const emit = defineEmits<{
 </script>
 
 <template>
-  <Table>
+  <div>
+    <div class="hidden md:block">
+      <Table>
     <TableHeader>
       <TableRow>
         <TableHead>Name</TableHead>
@@ -82,6 +84,57 @@ const emit = defineEmits<{
           </TableCell>
         </TableRow>
       </template>
-    </TableBody>
-  </Table>
+      </TableBody>
+    </Table>
+    </div>
+
+    <!-- Mobile Card List -->
+    <div class="md:hidden divide-y">
+      <template v-if="isLoading && customers.length === 0">
+        <div v-for="i in 5" :key="i" class="p-4 space-y-3">
+          <div class="flex justify-between items-start">
+            <Skeleton class="h-5 w-32" />
+            <Skeleton class="h-6 w-16 rounded-full" />
+          </div>
+          <div class="space-y-2">
+            <Skeleton class="h-4 w-40" />
+            <Skeleton class="h-4 w-24" />
+          </div>
+          <div class="flex justify-end gap-2 pt-2">
+            <Skeleton class="h-8 w-8" />
+            <Skeleton class="h-8 w-8" />
+            <Skeleton class="h-8 w-8" />
+          </div>
+        </div>
+      </template>
+      <template v-else>
+        <div v-for="customer in customers" :key="customer.id" class="p-4 space-y-3">
+          <div class="flex justify-between items-start gap-4">
+            <p class="font-medium">{{ customer.name }}</p>
+            <Badge :variant="customer.is_active !== false ? 'success' : 'outline'">
+              {{ customer.is_active !== false ? 'Active' : 'Inactive' }}
+            </Badge>
+          </div>
+          <div class="text-sm text-slate-500 space-y-1">
+            <p v-if="customer.email">{{ customer.email }}</p>
+            <p v-if="customer.phone">{{ customer.phone }}</p>
+          </div>
+          <div class="flex justify-end gap-1 pt-2 border-t">
+            <Button variant="ghost" size="icon" class="h-8 w-8" @click="emit('view', customer)">
+              <Eye class="w-4 h-4 text-slate-600" />
+            </Button>
+            <Button variant="ghost" size="icon" class="h-8 w-8" @click="emit('edit', customer)">
+              <Edit class="w-4 h-4 text-slate-600" />
+            </Button>
+            <Button variant="ghost" size="icon" class="h-8 w-8" @click="emit('delete', customer)">
+              <Trash2 class="w-4 h-4 text-red-500" />
+            </Button>
+          </div>
+        </div>
+        <div v-if="customers.length === 0" class="p-8 text-center text-slate-500">
+          No customers found.
+        </div>
+      </template>
+    </div>
+  </div>
 </template>
