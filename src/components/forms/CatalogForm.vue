@@ -3,6 +3,7 @@ import { reactive, onMounted } from 'vue'
 import { Label } from '@/components/ui/label'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
+import { NumberStepper } from '@/components/ui/number-stepper'
 import { useCatalogStore } from '@/stores/catalog'
 import type { Item } from '@/services/catalogService'
 
@@ -67,7 +68,7 @@ const handleSubmit = () => {
 
       <div class="space-y-2">
         <Label for="price">Price (USD)</Label>
-        <Input id="price" v-model.number="form.price" type="number" step="0.01" min="0" required />
+        <NumberStepper id="price" v-model="form.price" :min="0" :step="0.5" />
       </div>
 
       <div class="flex items-center gap-2 self-end pb-2">
