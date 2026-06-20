@@ -46,7 +46,10 @@ export const useAuthStore = defineStore('auth', () => {
         .insert({
           id: user.value.id,
           email: user.value.email,
-          full_name: user.value.user_metadata?.full_name || user.value.user_metadata?.name || user.value.email?.split('@')[0] || 'User'
+          full_name: user.value.user_metadata?.full_name || user.value.user_metadata?.name || user.value.email?.split('@')[0] || 'User',
+          first_name: user.value.user_metadata?.first_name || '',
+          last_name: user.value.user_metadata?.last_name || '',
+          username: user.value.user_metadata?.username || user.value.email?.split('@')[0] || ''
         })
         .select()
         .maybeSingle();
