@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
+import { onClickOutside } from '@vueuse/core'
 import { quotationService, type Quotation } from '@/services/quotationService'
 import { useInvoicesStore } from '@/stores/invoices'
 import { notify } from '@/lib/notify'
@@ -44,6 +45,12 @@ const invoicesStore = useInvoicesStore()
 const quotation = ref<Quotation | null>(null)
 const isLoading = ref(true)
 const isConverting = ref(false)
+const showMobileActions = ref(false)
+const mobileActionsRef = ref(null)
+
+onClickOutside(mobileActionsRef, () => {
+  showMobileActions.value = false
+})
 
 // Computed Properties for UI Logic
 const canConvertToInvoice = computed(() => {
@@ -124,62 +131,131 @@ const handleConvertToInvoice = async () => {
       </div>
 
       <div v-if="quotation" class="flex items-center gap-3">
-        <Button 
-          v-if="canConvertToInvoice"
-          variant="default" 
-          class="gap-2" 
-          :disabled="isConverting"
-          @click="handleConvertToInvoice" 
-        >
-          <Loader2 v-if="isConverting" class="w-4 h-4 animate-spin" />
-          <CreditCard v-else class="w-4 h-4" />
-          Convert to Invoice
-        </Button>
-        
-        <Button 
-          v-if="canMarkAsSent"
-          variant="outline" 
-          class="gap-2" 
-          @click="handleStatusChange('sent')" 
-        >
-          <Send class="w-4 h-4" />
-          Mark as Sent
-        </Button>
-        
-        <Button 
-          v-if="canApproveOrReject"
-          variant="outline" 
-          class="gap-2 text-green-600 hover:text-green-700 hover:bg-green-50" 
-          @click="handleStatusChange('approved')" 
-        >
-          <CheckCircle class="w-4 h-4" />
-          Approve
-        </Button>
-        
-        <Button 
-          v-if="canApproveOrReject"
-          variant="outline" 
-          class="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50" 
-          @click="handleStatusChange('rejected')" 
-        >
-          <XCircle class="w-4 h-4" />
-          Reject
-        </Button>
+        <!-- Desktop Actions -->
+        <div class="hidden md:flex items-center gap-3">
+          <Button 
+            v-if="canConvertToInvoice"
+            variant="default" 
+            class="gap-2" 
+            :disabled="isConverting"
+            @click="handleConvertToInvoice" 
+          >
+            <Loader2 v-if="isConverting" class="w-4 h-4 animate-spin" />
+            <CreditCard v-else class="w-4 h-4" />
+            Convert to Invoice
+          </Button>
+          
+          <Button 
+            v-if="canMarkAsSent"
+            variant="outline" 
+            class="gap-2" 
+            @click="handleStatusChange('sent')" 
+          >
+            <Send class="w-4 h-4" />
+            Mark as Sent
+          </Button>
+          
+          <Button 
+            v-if="canApproveOrReject"
+            variant="outline" 
+            class="gap-2 text-green-600 hover:text-green-700 hover:bg-green-50" 
+            @click="handleStatusChange('approved')" 
+          >
+            <CheckCircle class="w-4 h-4" />
+            Approve
+          </Button>
+          
+          <Button 
+            v-if="canApproveOrReject"
+            variant="outline" 
+            class="gap-2 text-red-600 hover:text-red-700 hover:bg-red-50" 
+            @click="handleStatusChange('rejected')" 
+          >
+            <XCircle class="w-4 h-4" />
+            Reject
+          </Button>
 
-        <div class="w-px h-8 bg-slate-200 mx-1"></div>
-        
-        <Button variant="outline" class="gap-2" @click="router.push(`/quotations/${quotation.id}/edit`)">
-          <Edit class="w-4 h-4" />
-          Edit
-        </Button>
-        <Button variant="outline" class="gap-2" @click="router.push(`/quotations/${quotation.id}/print`)">
-          <FileText class="w-4 h-4" />
-          Preview
-        </Button>
-        <Button class="gap-2" @click="router.push(`/quotations/${quotation.id}/print?print=true`)">
-          <Printer class="w-4 h-4" />
-          Export PDF
-        </Button>
+          <div class="w-px h-8 bg-slate-200 mx-1"></div>
+          
+          <Button variant="outline" class="gap-2" @click="router.push(`/quotations/${quotation.id}/edit`)">
+            <Edit class="w-4 h-4" />
+            Edit
+          </Button>
+          <Button variant="outline" class="gap-2" @click="router.push(`/quotations/${quotation.id}/print`)">
+            <FileText class="w-4 h-4" />
+            Preview
+          </Button>
+          <Button class="gap-2" @click="router.push(`/quotations/${quotation.id}/print?print=true`)">
+            <Printer class="w-4 h-4" />
+            Export PDF
+          </Button>
+        </div>
+
+        <!-- Mobile Actions Dropdown -->
+        <div class="md:hidden relative" ref="mobileActionsRef">
+          <Button variant="outline" @click="showMobileActions = !showMobileActions">
+            Actions
+          </Button>
+          
+          <div v-if="showMobileActions" class="absolute right-0 mt-2 w-56 rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5 z-50 p-2 flex flex-col gap-1">
+            <Button 
+              v-if="canConvertToInvoice"
+              variant="default" 
+              class="w-full justify-start gap-2" 
+              :disabled="isConverting"
+              @click="handleConvertToInvoice" 
+            >
+              <Loader2 v-if="isConverting" class="w-4 h-4 animate-spin" />
+              <CreditCard v-else class="w-4 h-4" />
+              Convert to Invoice
+            </Button>
+            
+            <Button 
+              v-if="canMarkAsSent"
+              variant="outline" 
+              class="w-full justify-start gap-2" 
+              @click="handleStatusChange('sent')" 
+            >
+              <Send class="w-4 h-4" />
+              Mark as Sent
+            </Button>
+            
+            <Button 
+              v-if="canApproveOrReject"
+              variant="outline" 
+              class="w-full justify-start gap-2 text-green-600" 
+              @click="handleStatusChange('approved')" 
+            >
+              <CheckCircle class="w-4 h-4" />
+              Approve
+            </Button>
+            
+            <Button 
+              v-if="canApproveOrReject"
+              variant="outline" 
+              class="w-full justify-start gap-2 text-red-600" 
+              @click="handleStatusChange('rejected')" 
+            >
+              <XCircle class="w-4 h-4" />
+              Reject
+            </Button>
+
+            <div class="h-px bg-slate-200 my-1"></div>
+            
+            <Button variant="ghost" class="w-full justify-start gap-2" @click="router.push(`/quotations/${quotation.id}/edit`)">
+              <Edit class="w-4 h-4 text-slate-500" />
+              Edit
+            </Button>
+            <Button variant="ghost" class="w-full justify-start gap-2" @click="router.push(`/quotations/${quotation.id}/print`)">
+              <FileText class="w-4 h-4 text-slate-500" />
+              Preview
+            </Button>
+            <Button variant="ghost" class="w-full justify-start gap-2" @click="router.push(`/quotations/${quotation.id}/print?print=true`)">
+              <Printer class="w-4 h-4 text-slate-500" />
+              Export PDF
+            </Button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -232,24 +308,38 @@ const handleConvertToInvoice = async () => {
             <CardTitle>Line Items</CardTitle>
           </CardHeader>
           <CardContent class="p-0">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Description</TableHead>
-                  <TableHead class="w-24 text-center">Qty</TableHead>
-                  <TableHead class="w-32 text-right">Price</TableHead>
-                  <TableHead class="w-32 text-right">Total</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <TableRow v-for="item in quotation.items" :key="item.id">
-                  <TableCell class="font-medium">{{ item.name }}</TableCell>
-                  <TableCell class="text-center">{{ item.quantity }}</TableCell>
-                  <TableCell class="text-right">{{ formatCurrency(item.price) }}</TableCell>
-                  <TableCell class="text-right">{{ formatCurrency(item.total) }}</TableCell>
-                </TableRow>
-              </TableBody>
-            </Table>
+            <!-- Desktop Table -->
+            <div class="hidden md:block">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Description</TableHead>
+                    <TableHead class="w-24 text-center">Qty</TableHead>
+                    <TableHead class="w-32 text-right">Price</TableHead>
+                    <TableHead class="w-32 text-right">Total</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow v-for="item in quotation.items" :key="item.id">
+                    <TableCell class="font-medium">{{ item.name }}</TableCell>
+                    <TableCell class="text-center">{{ item.quantity }}</TableCell>
+                    <TableCell class="text-right">{{ formatCurrency(item.price) }}</TableCell>
+                    <TableCell class="text-right">{{ formatCurrency(item.total) }}</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+
+            <!-- Mobile Card List -->
+            <div class="md:hidden divide-y">
+              <div v-for="item in quotation.items" :key="item.id" class="p-4 space-y-3">
+                <p class="font-medium text-slate-900">{{ item.name }}</p>
+                <div class="flex justify-between text-sm text-slate-500">
+                  <span>{{ item.quantity }} × {{ formatCurrency(item.price) }}</span>
+                  <span class="font-bold text-slate-900">{{ formatCurrency(item.total) }}</span>
+                </div>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
