@@ -55,12 +55,12 @@ async function handleLogoUpload(event: Event) {
 
 <template>
   <div class="space-y-6">
-    <div class="flex justify-between items-center">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-3-xl font-bold tracking-tight">Branding</h1>
+        <h1 class="text-3xl font-bold tracking-tight">Branding</h1>
         <p class="text-muted-foreground">Customize your organization's visual identity and profile.</p>
       </div>
-      <Button @click="handleSave" :disabled="isSaving">
+      <Button @click="handleSave" :disabled="isSaving" class="w-full sm:w-auto">
         <Loader2 v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
         <Save v-else class="mr-2 h-4 w-4" />
         Save Changes
