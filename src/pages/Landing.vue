@@ -11,7 +11,8 @@ import {
   Mail, 
   Send, 
   Utensils, 
-  XCircle 
+  XCircle,
+  Loader2
 } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -19,6 +20,21 @@ const isScrolled = ref(false)
 
 // Intersection Observer for scroll reveal animations
 let observer: IntersectionObserver | null = null
+
+const isNavigating = ref(false)
+const navTarget = ref('')
+
+const handleNavigate = async (path: string) => {
+  if (isNavigating.value) return
+  isNavigating.value = true
+  navTarget.value = path
+  try {
+    await router.push(path)
+  } finally {
+    isNavigating.value = false
+    navTarget.value = ''
+  }
+}
 
 const handleScroll = () => {
   isScrolled.value = window.scrollY > 20
@@ -74,15 +90,19 @@ onUnmounted(() => {
 
         <div class="flex items-center gap-4">
           <button 
-            @click="router.push('/auth/login')" 
-            class="hidden md:block text-sm font-medium text-[#1B1B1B] dark:text-[#F8F7F4] hover:text-[#C57B57] transition-colors"
+            @click="handleNavigate('/auth/login')" 
+            :disabled="isNavigating"
+            class="hidden md:flex items-center justify-center text-sm font-medium text-[#1B1B1B] dark:text-[#F8F7F4] hover:text-[#C57B57] transition-colors disabled:opacity-50"
           >
+            <Loader2 v-if="navTarget === '/auth/login'" class="w-4 h-4 mr-2 animate-spin" />
             Sign In
           </button>
           <button 
-            @click="router.push('/onboarding')" 
-            class="bg-[#C57B57] hover:bg-[#b06a48] text-white px-5 py-2.5 rounded-md text-sm font-medium transition-all shadow-sm hover:shadow-md transform hover:-translate-y-0.5"
+            @click="handleNavigate('/onboarding')" 
+            :disabled="isNavigating"
+            class="bg-[#C57B57] hover:bg-[#b06a48] text-white px-5 py-2.5 rounded-md text-sm font-medium transition-all shadow-sm hover:shadow-md transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none flex items-center justify-center"
           >
+            <Loader2 v-if="navTarget === '/onboarding'" class="w-4 h-4 mr-2 animate-spin" />
             Get Started
           </button>
         </div>
@@ -112,9 +132,10 @@ onUnmounted(() => {
         </p>
         
         <div class="flex flex-col sm:flex-row items-center gap-4 mb-12 w-full sm:w-auto">
-          <button @click="router.push('/onboarding')" class="w-full sm:w-auto bg-[#2D5A4B] hover:bg-[#224438] text-white px-8 py-3.5 rounded-md text-base font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 flex items-center justify-center gap-2">
-            Get Started
-            <Send class="w-4 h-4" />
+          <button @click="handleNavigate('/onboarding')" :disabled="isNavigating" class="w-full sm:w-auto bg-[#2D5A4B] hover:bg-[#224438] text-white px-8 py-3.5 rounded-md text-base font-medium transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:opacity-50 disabled:transform-none flex items-center justify-center gap-2">
+            <Loader2 v-if="navTarget === '/onboarding'" class="w-4 h-4 mr-2 animate-spin" />
+            <span v-else>Get Started</span>
+            <Send v-if="navTarget !== '/onboarding'" class="w-4 h-4" />
           </button>
           <button class="w-full sm:w-auto bg-transparent border border-[#2D5A4B] dark:border-[#E8D8C4] text-[#2D5A4B] dark:text-[#E8D8C4] hover:bg-[#2D5A4B]/5 px-8 py-3.5 rounded-md text-base font-medium transition-all flex items-center justify-center gap-2">
             Watch Demo
@@ -503,7 +524,8 @@ onUnmounted(() => {
         </p>
         
         <div class="flex flex-col sm:flex-row items-center justify-center gap-4">
-          <button @click="router.push('/onboarding')" class="w-full sm:w-auto bg-[#C57B57] hover:bg-[#b06a48] text-white px-10 py-4 rounded-md text-base font-semibold transition-all shadow-xl transform hover:-translate-y-1">
+          <button @click="handleNavigate('/onboarding')" :disabled="isNavigating" class="w-full sm:w-auto bg-[#C57B57] hover:bg-[#b06a48] text-white px-10 py-4 rounded-md text-base font-semibold transition-all shadow-xl transform hover:-translate-y-1 disabled:opacity-50 disabled:transform-none flex items-center justify-center">
+            <Loader2 v-if="navTarget === '/onboarding'" class="w-4 h-4 mr-2 animate-spin" />
             Get Started
           </button>
           <button class="w-full sm:w-auto bg-transparent border border-white/30 text-white hover:bg-white/10 px-10 py-4 rounded-md text-base font-semibold transition-all">
