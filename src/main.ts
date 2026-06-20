@@ -19,11 +19,18 @@ app.mount('#app')
 
 // Initialize auth in the background (non-blocking)
 const authStore = useAuthStore()
+import { useUiStore } from './stores/ui'
+const uiStore = useUiStore()
+
+uiStore.startLoading('auth-init', 'Restoring your session...')
 
 authService.getSession()
   .then(session => authStore.setSession(session))
   .catch(error => console.error('Failed to initialize auth:', error))
-  .finally(() => authStore.setLoading(false))
+  .finally(() => {
+    authStore.setLoading(false)
+    uiStore.stopLoading('auth-init')
+  })
 
 // Listen for auth changes
 authService.onAuthStateChange(async (_event, session) => {
