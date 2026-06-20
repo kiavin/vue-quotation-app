@@ -75,10 +75,10 @@ onMounted(async () => {
   // Setup ResizeObserver for perfect scaling
   resizeObserver = new ResizeObserver((entries) => {
     for (let entry of entries) {
-      // 210mm is approx 793.7px at 96dpi
+      // 210mm is approx 794px at 96dpi
       const availableWidth = entry.contentRect.width;
-      // Scale down so 794px fits into available width exactly
-      previewScale.value = availableWidth / 794;
+      // Subtract 2px for borders to prevent subpixel overflow, and cap scale at 1.0
+      previewScale.value = Math.min((availableWidth - 2) / 794, 1);
     }
   });
 
@@ -347,12 +347,13 @@ async function handleLogoUpload(event: Event) {
           class="border border-slate-200 shadow-xl bg-slate-100 p-0 sm:p-4 overflow-hidden"
         >
           <!-- The container that ResizeObserver watches -->
-          <div ref="previewContainer" class="w-full flex justify-center">
+          <div ref="previewContainer" class="w-full flex justify-center overflow-hidden">
             <!-- Scaled wrapper that reserves the exact scaled layout space -->
             <div
               class="relative bg-white shadow-sm border border-slate-200 overflow-hidden"
               :style="{
                 width: `${794 * previewScale}px`,
+                maxWidth: '100%',
                 height: `${documentHeight * previewScale}px`,
                 transition: 'height 0.2s ease-out'
               }"
