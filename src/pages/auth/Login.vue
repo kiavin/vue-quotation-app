@@ -84,6 +84,11 @@ const loginWithGoogle = async () => {
       {{ isLoading ? 'Signing in...' : 'Sign In' }}
     </Button>
     
+    <div class="text-center text-sm text-slate-500 mt-4">
+      Don't have an account? 
+      <router-link to="/auth/register" class="text-primary hover:underline font-medium">Sign up</router-link>
+    </div>
+    
     <div class="relative my-6">
       <div class="absolute inset-0 flex items-center">
         <span class="w-full border-t"></span>

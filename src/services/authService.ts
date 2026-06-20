@@ -27,6 +27,40 @@ export const authService = {
   },
 
   /**
+   * Sign up with email, password and metadata
+   */
+  async signUp(credentials: { email: string; password: string; fname: string; lname: string; username: string }): Promise<ApiResponse<AuthResponse['data']>> {
+    try {
+      const { email, password, fname, lname, username } = credentials;
+      const response = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            first_name: fname,
+            last_name: lname,
+            full_name: `${fname} ${lname}`,
+            username: username
+          }
+        }
+      });
+      if (response.error) throw response.error;
+      
+      return apiSuccess(response.data, {
+        type: 'toast',
+        title: 'Account Created',
+        message: 'Your account has been successfully created. You can now sign in.',
+      });
+    } catch (error) {
+      return apiError(mapSupabaseError(error), {
+        type: 'toast',
+        title: 'Sign Up Failed',
+        message: mapSupabaseError(error),
+      });
+    }
+  },
+
+  /**
    * Sign out
    */
   async signOut(): Promise<ApiResponse<boolean>> {
@@ -53,13 +87,6 @@ export const authService = {
       const sessionPromise = (async () => {
         const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
         if (sessionError || !sessionData.session) throw sessionError || new Error('No session');
-        
-        // Verify the session with the server
-        const { data: userData, error: userError } = await supabase.auth.getUser();
-        if (userError || !userData.user) {
-          await supabase.auth.signOut();
-          return null;
-        }
         
         return sessionData.session;
       })();
