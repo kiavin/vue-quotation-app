@@ -1,11 +1,12 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { invoiceService } from '@/services/invoiceService'
-import InvoiceTemplateBasic from '@/templates/documents/InvoiceTemplateBasic.vue'
+import { TEMPLATE_VARIANTS, DEFAULT_TEMPLATE, type TemplateVariantId } from '@/templates/documents'
 import { Button } from '@/components/ui/button'
 import { pdfService } from '@/services/pdfService'
 import { notify } from '@/lib/notify'
+import { Printer, ChevronLeft, Download } from 'lucide-vue-next'
 
 import type { Invoice } from '@/services/invoiceService'
 
@@ -14,7 +15,16 @@ const router = useRouter()
 const invoice = ref<(Invoice & { items?: any[], customers?: any }) | null>(null)
 const isLoading = ref(true)
 
+// Template Selection Logic
+const selectedVariantId = ref<TemplateVariantId>(DEFAULT_TEMPLATE)
+
 onMounted(async () => {
+  // Load saved preference
+  const saved = localStorage.getItem('document_template_variant') as TemplateVariantId
+  if (saved && Object.keys(TEMPLATE_VARIANTS).includes(saved)) {
+    selectedVariantId.value = saved
+  }
+
   const id = route.params.id as string
   const result = await invoiceService.getInvoiceById(id)
   
@@ -31,6 +41,17 @@ onMounted(async () => {
   
   isLoading.value = false
 })
+
+const activeTemplateComponent = computed(() => {
+  return TEMPLATE_VARIANTS[selectedVariantId.value].invoice
+})
+
+const handleTemplateChange = (event: Event) => {
+  const target = event.target as HTMLSelectElement
+  const val = target.value as TemplateVariantId
+  selectedVariantId.value = val
+  localStorage.setItem('document_template_variant', val)
+}
 
 const handlePrint = () => {
   pdfService.print()
@@ -49,6 +70,20 @@ const handlePrint = () => {
           </Button>
           <div class="h-4 w-px bg-slate-200"></div>
           <span class="font-semibold text-slate-700">Invoice Preview</span>
+          
+          <div class="ml-4 flex items-center gap-2">
+            <label for="template-select" class="text-xs font-medium text-slate-500 uppercase tracking-wider">Template:</label>
+            <select 
+              id="template-select"
+              :value="selectedVariantId"
+              @change="handleTemplateChange"
+              class="text-sm border-slate-200 rounded-md py-1 pl-2 pr-8 focus:ring-primary focus:border-primary"
+            >
+              <option v-for="(config, id) in TEMPLATE_VARIANTS" :key="id" :value="id">
+                {{ config.label }}
+              </option>
+            </select>
+          </div>
         </div>
         <div class="flex items-center gap-3">
           <Button variant="outline" size="sm" @click="handlePrint">
@@ -64,11 +99,14 @@ const handlePrint = () => {
     </div>
 
     <!-- Document Content -->
-    <div v-if="!isLoading && invoice" class="py-8 print:py-0">
-      <InvoiceTemplateBasic 
-        :data="(invoice as any)" 
-        :branding="(invoice as any).branding_snapshot" 
-      />
+    <div v-if="!isLoading && invoice" class="py-8 print:py-0 flex justify-center overflow-x-auto">
+      <div class="w-[210mm] min-h-[297mm] bg-white shadow-sm print:shadow-none shrink-0 relative">
+        <component 
+          :is="activeTemplateComponent"
+          :data="(invoice as any)" 
+          :branding="(invoice as any).branding_snapshot" 
+        />
+      </div>
     </div>
     
     <div v-else-if="isLoading" class="flex flex-col items-center justify-center min-h-[60vh]">
@@ -92,6 +130,8 @@ const handlePrint = () => {
 @media print {
   body {
     background-color: white !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
 }
 </style>
