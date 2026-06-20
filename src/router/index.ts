@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { watch } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 
 const router = createRouter({
@@ -177,13 +178,19 @@ router.beforeEach(async (to, _from, next) => {
   // Auth-required routes must wait for auth to resolve
   if (authStore.loading && to.meta.requiresAuth) {
     await new Promise<void>((resolve) => {
-      const unwatch = authStore.$subscribe(() => {
-        if (!authStore.loading) {
+      // If loading is already false, resolve immediately
+      if (!authStore.loading) {
+        return resolve()
+      }
+      
+      const unwatch = watch(() => authStore.loading, (isLoading) => {
+        if (!isLoading) {
           unwatch()
           resolve()
         }
       })
-      // If loading already resolved between the check and subscribe
+      
+      // Double check in case it resolved synchronously before watcher was created
       if (!authStore.loading) {
         unwatch()
         resolve()
