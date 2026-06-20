@@ -5,6 +5,7 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
+import { NumberStepper } from '@/components/ui/number-stepper'
 import { Loader2, Save } from 'lucide-vue-next'
 
 const settingsStore = useSettingsStore()
@@ -37,12 +38,12 @@ async function handleSave() {
 
 <template>
   <div class="space-y-6">
-    <div class="flex justify-between items-center">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
-        <h1 class="text-3-xl font-bold tracking-tight">Settings</h1>
+        <h1 class="text-3xl font-bold tracking-tight">Settings</h1>
         <p class="text-muted-foreground">Manage your system defaults and business preferences.</p>
       </div>
-      <Button @click="handleSave" :disabled="isSaving">
+      <Button @click="handleSave" :disabled="isSaving" class="w-full sm:w-auto">
         <Loader2 v-if="isSaving" class="mr-2 h-4 w-4 animate-spin" />
         <Save v-else class="mr-2 h-4 w-4" />
         Save Settings
@@ -58,7 +59,7 @@ async function handleSave() {
         <CardContent class="space-y-4">
           <div class="grid gap-2">
             <Label for="tax-rate">Default Tax Rate (%)</Label>
-            <Input id="tax-rate" type="number" v-model.number="form.default_tax_rate" step="0.01" />
+            <NumberStepper id="tax-rate" v-model="form.default_tax_rate" :min="0" :step="0.5" />
           </div>
 
           <div class="grid gap-2">
