@@ -21,6 +21,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { NumberStepper } from "@/components/ui/number-stepper";
 import { notify } from "@/lib/notify";
 
 const router = useRouter();
@@ -168,17 +169,17 @@ const formatCurrency = (val: number) => {
           </p>
         </div>
       </div>
-      <div class="flex items-center gap-3">
+      <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-3 w-full md:w-auto">
         <Button
           variant="outline"
-          class="gap-2"
+          class="gap-2 w-full sm:w-auto"
           @click="handleSave('draft')"
           :disabled="isSaving"
         >
           <Save class="w-4 h-4" />
           {{ isSaving ? "Saving..." : "Save Draft" }}
         </Button>
-        <Button class="gap-2" @click="handleSave('sent')" :disabled="isSaving">
+        <Button class="gap-2 w-full sm:w-auto" @click="handleSave('sent')" :disabled="isSaving">
           <Send class="w-4 h-4" />
           {{ isSaving ? "Sending..." : "Send to Customer" }}
         </Button>
@@ -247,14 +248,15 @@ const formatCurrency = (val: number) => {
             </div>
           </CardHeader>
           <CardContent class="p-0">
-            <div class="relative overflow-x-auto max-h-96 overflow-y-auto">
-              <table class="w-full text-sm text-left">
+            <div class="relative max-h-96 overflow-y-auto">
+              <!-- Desktop Table -->
+              <table class="w-full text-sm text-left hidden md:table">
                 <thead
                   class="text-xs text-slate-500 uppercase bg-slate-50 border-y"
                 >
                   <tr>
                     <th class="px-6 py-3 font-medium">Description</th>
-                    <th class="px-6 py-3 font-medium w-24 text-center">Qty</th>
+                    <th class="px-6 py-3 font-medium w-36 text-center">Qty</th>
                     <th class="px-6 py-3 font-medium w-32 text-right">Price</th>
                     <th class="px-6 py-3 font-medium w-32 text-right">Total</th>
                     <th class="px-6 py-3 font-medium w-16"></th>
@@ -269,21 +271,18 @@ const formatCurrency = (val: number) => {
                     <td class="px-6 py-4">
                       <Input
                         v-model="item.name"
-                        class="border-transparent bg-transparent hover:border-slate-200 focus:bg-white px-0"
+                        class="border-transparent bg-transparent hover:border-slate-200 focus:bg-white px-2"
                       />
                     </td>
                     <td class="px-6 py-4">
-                      <Input
-                        v-model.number="item.quantity"
-                        type="number"
-                        class="w-20 mx-auto text-center border-transparent bg-transparent hover:border-slate-200 focus:bg-white"
-                      />
+                      <NumberStepper v-model="item.quantity" :min="1" />
                     </td>
                     <td class="px-6 py-4">
                       <Input
                         v-model.number="item.price"
                         type="number"
-                        class="w-24 ml-auto text-right border-transparent bg-transparent hover:border-slate-200 focus:bg-white"
+                        inputmode="decimal"
+                        class="w-24 ml-auto text-right border-transparent bg-transparent hover:border-slate-200 focus:bg-white px-2"
                       />
                     </td>
                     <td class="px-6 py-4 text-right font-medium">
@@ -300,21 +299,62 @@ const formatCurrency = (val: number) => {
                       </Button>
                     </td>
                   </tr>
-                  <tr v-if="quotationStore.currentItems.length === 0">
-                    <td
-                      colspan="5"
-                      class="px-6 py-12 text-center text-slate-500"
-                    >
-                      <ShoppingCart
-                        class="w-8 h-8 mx-auto mb-2 text-slate-200"
-                      />
-                      <p>
-                        No items added yet. Search the catalog to add items.
-                      </p>
-                    </td>
-                  </tr>
                 </tbody>
               </table>
+
+              <!-- Mobile Card List -->
+              <div class="md:hidden divide-y">
+                <div 
+                  v-for="(item, index) in quotationStore.currentItems" 
+                  :key="index" 
+                  class="p-4 space-y-4"
+                >
+                  <div class="flex items-start justify-between gap-4">
+                    <Input
+                      v-model="item.name"
+                      class="font-medium bg-transparent px-2"
+                      placeholder="Item Description"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      class="text-red-500 shrink-0"
+                      @click="quotationStore.removeItem(index)"
+                    >
+                      <Trash2 class="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <div class="flex items-center justify-between gap-4">
+                    <div class="space-y-1">
+                      <Label class="text-xs text-slate-500">Qty</Label>
+                      <NumberStepper v-model="item.quantity" :min="1" class="w-32" />
+                    </div>
+                    <div class="space-y-1 text-right">
+                      <Label class="text-xs text-slate-500">Price</Label>
+                      <Input
+                        v-model.number="item.price"
+                        type="number"
+                        inputmode="decimal"
+                        class="w-24 ml-auto text-right bg-transparent px-2"
+                      />
+                    </div>
+                  </div>
+                  <div class="flex justify-between items-center pt-2 border-t text-sm">
+                    <span class="text-slate-500 font-medium">Line Total</span>
+                    <span class="font-bold">{{ formatCurrency(item.quantity * item.price) }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Empty State -->
+              <div v-if="quotationStore.currentItems.length === 0" class="px-6 py-12 text-center text-slate-500 border-y">
+                <ShoppingCart
+                  class="w-8 h-8 mx-auto mb-2 text-slate-200"
+                />
+                <p>
+                  No items added yet. Search the catalog to add items.
+                </p>
+              </div>
             </div>
 
             <!-- Quick Add from Catalog -->
