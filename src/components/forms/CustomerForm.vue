@@ -38,11 +38,11 @@ const handleSubmit = () => {
       </div>
       <div class="space-y-2">
         <Label for="email">Email Address</Label>
-        <Input id="email" v-model="form.email" type="email" placeholder="email@example.com" />
+        <Input id="email" v-model="form.email" type="email" inputmode="email" autocomplete="email" placeholder="email@example.com" />
       </div>
       <div class="space-y-2">
         <Label for="phone">Phone Number</Label>
-        <Input id="phone" v-model="form.phone" placeholder="+1 (555) 000-0000" />
+        <Input id="phone" v-model="form.phone" type="tel" inputmode="tel" autocomplete="tel" placeholder="+1 (555) 000-0000" />
       </div>
       <div class="space-y-2">
         <Label for="tax_number">Tax / VAT Number</Label>
