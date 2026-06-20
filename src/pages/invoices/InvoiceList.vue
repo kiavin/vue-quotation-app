@@ -59,7 +59,8 @@ const handleView = (id?: string) => {
     </div>
 
     <div class="border rounded-lg bg-white overflow-hidden">
-      <Table>
+      <div class="hidden md:block">
+        <Table>
         <TableHeader>
           <TableRow>
             <TableHead>Invoice #</TableHead>
@@ -109,6 +110,57 @@ const handleView = (id?: string) => {
           </template>
         </TableBody>
       </Table>
+      </div>
+
+      <!-- Mobile Card List -->
+      <div class="md:hidden divide-y">
+        <template v-if="invoicesStore.loading && invoicesStore.invoices.length === 0">
+          <div v-for="i in 5" :key="i" class="p-4 space-y-3">
+            <div class="flex justify-between items-start">
+              <Skeleton class="h-5 w-24" />
+              <Skeleton class="h-6 w-20 rounded-full" />
+            </div>
+            <div class="space-y-2">
+              <Skeleton class="h-4 w-32" />
+              <Skeleton class="h-4 w-24" />
+            </div>
+            <div class="flex justify-between items-center pt-2">
+              <Skeleton class="h-5 w-20" />
+              <Skeleton class="h-8 w-8" />
+            </div>
+          </div>
+        </template>
+        <template v-else>
+          <div 
+            v-for="invoice in invoicesStore.invoices" 
+            :key="invoice.id" 
+            class="p-4 space-y-3 cursor-pointer hover:bg-slate-50 transition-colors"
+            @click="handleView(invoice.id)"
+          >
+            <div class="flex justify-between items-start gap-4">
+              <p class="font-medium text-slate-900">{{ invoice.number }}</p>
+              <InvoiceStatusBadge :status="invoice.status" />
+            </div>
+            
+            <div class="text-sm text-slate-500 space-y-1">
+              <p class="font-medium text-slate-700">{{ invoice.customers?.name }}</p>
+              <p>Due: {{ formatDate(invoice.due_date) }}</p>
+            </div>
+
+            <div class="flex justify-between items-center pt-2 border-t">
+              <p class="font-bold text-slate-900">{{ formatCurrency(invoice.total) }}</p>
+              <div class="flex gap-1" @click.stop>
+                <Button variant="ghost" size="icon" class="h-8 w-8" @click="handleView(invoice.id)">
+                  <Eye class="w-4 h-4 text-slate-600" />
+                </Button>
+              </div>
+            </div>
+          </div>
+          <div v-if="invoicesStore.invoices.length === 0" class="p-8 text-center text-slate-500 flex flex-col items-center justify-center gap-2">
+            <p>No invoices found. Convert a quotation to get started.</p>
+          </div>
+        </template>
+      </div>
     </div>
   </div>
 </template>
