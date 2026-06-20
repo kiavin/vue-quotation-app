@@ -142,27 +142,27 @@ onMounted(async () => {
 <template>
   <div class="space-y-8">
     <!-- Header Actions -->
-    <div class="flex items-center justify-between">
+    <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
       <div>
         <h2 class="text-3xl font-bold tracking-tight">Dashboard</h2>
         <p class="text-slate-500">
           Welcome back, here's what's happening today.
         </p>
       </div>
-      <div class="flex items-center gap-4">
-        <Button variant="outline" as-child>
-          <router-link to="/reports">View Reports</router-link>
+      <div class="flex items-center gap-3">
+        <Button variant="outline" as-child class="flex-1 sm:flex-none">
+          <router-link to="/reports">Reports</router-link>
         </Button>
-        <Button class="flex items-center gap-2" as-child>
+        <Button class="flex items-center gap-2 flex-1 sm:flex-none" as-child>
           <router-link to="/quotations/new">
             <Plus class="w-4 h-4" />
-            Create Quotation
+            New Quote
           </router-link>
         </Button>
       </div>
     </div>
 
-    <div class="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
+    <div class="grid grid-cols-2 gap-4 md:grid-cols-3 lg:grid-cols-6">
       <Card v-for="stat in stats" :key="stat.name">
         <CardHeader
           class="flex flex-row items-center justify-between space-y-0 pb-2"
