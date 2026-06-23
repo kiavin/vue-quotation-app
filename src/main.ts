@@ -24,17 +24,25 @@ const uiStore = useUiStore()
 
 uiStore.startLoading('auth-init', 'Restoring your session...')
 
-authService.getSession()
-  .then(session => authStore.setSession(session))
-  .catch(error => console.error('Failed to initialize auth:', error))
-  .finally(() => {
-    authStore.setLoading(false)
-    uiStore.stopLoading('auth-init')
+// Listen for auth changes as the primary source of truth.
+// INITIAL_SESSION fires automatically on load with the resolved session (or null), avoiding getSession() hangs.
+authService.onAuthStateChange((event, session) => {
+  // Do not await setSession here! Awaiting database calls inside onAuthStateChange 
+  // causes a deadlock because the Supabase GoTrue client internal lock is held 
+  // while firing callbacks. DB calls implicitly call getSession() which waits for the lock.
+  authStore.setSession(session).then(() => {
+    // If this is the initial load, stop the global loading spinner
+    if (event === 'INITIAL_SESSION') {
+      authStore.setLoading(false)
+      uiStore.stopLoading('auth-init')
+    }
+  }).catch(err => {
+    console.error('Failed to set session', err)
+    if (event === 'INITIAL_SESSION') {
+      authStore.setLoading(false)
+      uiStore.stopLoading('auth-init')
+    }
   })
-
-// Listen for auth changes
-authService.onAuthStateChange(async (_event, session) => {
-  await authStore.setSession(session)
 })
 
 // Redirect authenticated users away from guest-only pages once auth resolves
