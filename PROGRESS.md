@@ -4,7 +4,7 @@
 * **Project Name:** CQIS (Catering Quotations & Invoicing System)
 * **Purpose:** A modern SaaS platform for catering businesses to manage quotations, invoices, and client relationships.
 * **Technology Stack:** Vue 3, Vite, TypeScript, Tailwind CSS, Pinia, Vue Router, Supabase, shadcn-vue.
-* **Current Version:** 0.6.0 (Multi-Tenant SaaS Foundation)
+* **Current Version:** 0.6.0 (Multi-Tenant SaaS Foundation & Admin Panel scaffolding)
 
 ---
 
@@ -15,7 +15,7 @@
 - [x] Base Folder Structure
 - [x] Reusable Layouts (App & Auth)
 - [x] Design System & Base UI Components
-- [x] Dashboard Stub (Mock Data)
+- [x] Dashboard Stub
 - [x] Quotation Builder Prototype
 - [x] Supabase Integration (Typed Client, Env Validation)
 - [x] Production-ready Authentication (Supabase Auth)
@@ -30,6 +30,9 @@
 - [x] Branding & PDF Templates
 - [x] Invoice Generation & Management
 - [x] Organization Multi-Tenancy & RLS Prep
+- [x] Admin Route Tree & Protected Middleware
+- [x] Admin Panel Layout & Sidebar
+- [~] Admin Entity Oversight & Dashboards (UI built, pending integration)
 
 ---
 
@@ -58,149 +61,94 @@
 
 ---
 
-## Folder Structure
+## Pending & Half-Baked Implementations (Technical Debt)
 
-### src/templates/documents
-**Purpose:** Stateless Vue components for document layouts (Quotations, Invoices).
+While the core functionality of the SaaS is solid, several new features, specifically around the internal Platform Administration System, are currently in a "half-baked" state and require backend wiring or component completion:
 
-### src/services/dashboardService.ts
-**Purpose:** Backend-ready data aggregation endpoints for dashboard statistics.
+### 1. Platform Administration System (Mocked UI)
+Most of the `/admin` route tree is heavily mocked and requires integration with real Supabase RPC calls or a dedicated `adminService`:
+- **Dashboard (`Dashboard.vue`)**: KPI cards and chart areas (`<!-- Placeholder for Charts -->`) are currently static placeholders. Requires integration with `vue-chartjs` and a database rollup job.
+- **Entity Management (`Organizations.vue`, `Users.vue`)**: Lists are currently populated using hardcoded arrays (`// Mock Data`). Needs to be wired to the Supabase Edge Functions or admin endpoints.
+- **Organization Details (`OrganizationDetail.vue`)**: The tabs (Users, Billing, Logs, Settings) contain static UI placeholders (e.g., `Users Table Placeholder`, `Full Audit Table Placeholder`). Action buttons like "Suspend Organization" rely on `setTimeout` mock calls.
+- **System Health (`Health.vue`)**: Hardware/latency metrics and pg_stat values are mocked. Needs an endpoint pulling actual `pg_stat_statements` or Supabase project metrics.
+- **Feature Flags (`FeatureFlags.vue`) & Support Tools (`Support.vue`)**: Both pages rely entirely on frontend state arrays and mock API calls (e.g., `simulateSearch()`).
 
-### src/components/forms
-**Purpose:** Domain-specific complex components like `CustomerForm`, `CatalogTable`, `QuotationStatusBadge`, `TeamManagement`.
+### 2. Missing Auth & Security Enforcements
+- ~~**RBAC Verification**: `src/stores/auth.ts` has a pending `// TODO: implement real RBAC check against user_roles table`. Currently, the `isPlatformAdmin` check is not securely mapped to the database schema.~~ (Implemented via `is_super_admin()` RPC)
+- ~~**Admin Impersonation**: The UI banner for impersonation in `AdminLayout.vue` is commented out (`<!-- Active Impersonation Warning (Mocked for now) -->`). The underlying auth store logic to swap tenant contexts safely without corrupting the session is missing.~~ (Implemented `isImpersonating` state, banner, and store swap logic)
 
-### src/components/ui
-**Purpose:** Generic, low-level UI primitives (Button, Input, Table, etc.).
+
+### 3. Missing Planned Admin Views
+- Dedicated full-page views for **Subscriptions**, **Platform Analytics**, **Traffic**, and **Audit Logs** were mentioned in the implementation plan but have not yet been built. Currently, only subsets exist inside `Health.vue` and `Dashboard.vue`.
+
+### 4. General Application UI Debt
+- **Form Primitives**: The app relies heavily on native HTML `<select>` elements and browser-native `confirm()` dialogues for destructive actions. These need to be refactored into accessible `Select` and `AlertDialog` components using Radix Vue / shadcn-vue.
+- **Database Types Automation**: `src/lib/supabase.ts` mentions `// TODO: In the future, we can generate database types using the Supabase CLI`.
 
 ---
 
 ## Completed Features
 
+### Platform Administration UI Scaffolding
+**Completed:** 2026-06-23
+**Summary:** Built the entire frontend structure for the SaaS internal control panel, including isolated routing, premium dark-themed layouts, and robust CRUD data tables for organizations, users, system health, and settings (currently awaiting backend wiring).
+
 ### Team Management & Onboarding
 **Completed:** 2026-06-02
-**Files:**
-- `src/services/teamService.ts`
-- `src/components/forms/TeamManagement.vue`
-- `src/pages/auth/Onboarding.vue`
 **Summary:** Built a setup wizard for new users to configure their organization. Created Team Management UI for owners to invite users and assign roles (admin, manager, staff).
 
 ### Invoice Engine
 **Completed:** 2026-06-02
-**Files:**
-- `src/services/invoiceService.ts`
-- `src/stores/invoices.ts`
-- `src/pages/invoices/*`
-- `src/components/shared/InvoiceStatusBadge.vue`
-- `src/templates/documents/InvoiceTemplateBasic.vue`
 **Summary:** Full invoice management system. Supports conversion from quotations, status tracking (draft, sent, paid, etc.), and professional PDF generation.
 
 ### Branding & Customization
 **Completed:** 2026-06-02
-**Files:**
-- `src/services/organizationService.ts`
-- `src/stores/settings.ts`
-- `src/pages/Branding.vue`, `src/pages/Settings.vue`
 **Summary:** Full branding management including logo upload, color selection, and business profile. Includes a live preview of how documents will look.
 
 ### PDF & Document System
 **Completed:** 2026-06-02
-**Files:**
-- `src/templates/documents/QuotationTemplateBasic.vue`
-- `src/services/pdfService.ts`
-- `src/pages/quotations/QuotationPrint.vue`
 **Summary:** Professional A4 document templates with print and PDF export functionality. Quotations now capture branding snapshots for historical accuracy.
 
-### Customer Management
+### Core Modules (Customers, Catalog, Quotations)
 **Completed:** 2026-06-02
-**Summary:** Full CRUD for customers with search and detail views.
-
-### Item Catalog
-**Completed:** 2026-06-02
-**Summary:** Full CRUD for catalog items with category filtering.
-
-### Quotation Management
-**Completed:** 2026-06-02
-**Summary:** Professional quotation builder with catalog integration, real-time totals, status management, and persistence.
+**Summary:** Full CRUD for customers and catalog items. Professional quotation builder with catalog integration, real-time totals, status management, and persistence.
 
 ---
 
-## Components Inventory
-
-### Table
-**Location:** `src/components/ui/table/`
-**Components:** `Table`, `TableHeader`, `TableBody`, `TableRow`, `TableCell`, `TableHead`.
-
-### Badge
-**Location:** `src/components/ui/badge/Badge.vue`
-**Variants:** `default`, `secondary`, `destructive`, `outline`, `success`, `warning`.
-
----
-
-## Stores Inventory
-
-### settingsStore
-**Purpose:** Manages organization profile and branding settings.
-**State:** `organization`, `loading`, `error`.
-**Actions:** `fetchOrganization`, `updateOrganization`, `uploadLogo`.
-
-### quotationsStore
-**Purpose:** Manages the quotation lifecycle and builder state.
-**State:** `quotations`, `currentQuotation`, `currentItems`, `transportCharge`, `taxRate`.
-**Getters:** `subtotal`, `taxAmount`, `grandTotal`.
-**Actions:** `fetchQuotations`, `loadQuotation`, `addItem`, `removeItem`, `saveQuotation` (with branding snapshot), `resetBuilder`.
-
-### invoicesStore
-**Purpose:** Manages the invoice lifecycle and conversion.
-**State:** `invoices`, `currentInvoice`, `loading`, `error`.
-**Actions:** `fetchInvoices`, `loadInvoice`, `createFromQuotation`, `updateStatus`, `deleteInvoice`.
-
----
-
-## Technical Debt
-
-### Issue: UI Components (Select, Dialog)
-**Currently:** Using native HTML selects and `confirm()` for deletions.
-**Future Work:** Implement accessible `Select` and `Dialog` components using Radix Vue.
+## Folder Structure
+- **`src/templates/documents`**: Stateless Vue components for document layouts (Quotations, Invoices).
+- **`src/services/`**: API abstractions communicating with Supabase.
+- **`src/components/forms`**: Domain-specific complex components like `CustomerForm`, `CatalogTable`, `TeamManagement`.
+- **`src/components/ui`**: Generic, low-level UI primitives built with Radix Vue.
+- **`src/pages/admin/`**: Isolated views for the internal SaaS control panel.
 
 ---
 
 ## Upcoming Tasks
-1. Complete Dashboard UI with charts.
-2. Multi-template support for documents.
-3. Payment integration (Stripe).
+1. Complete the Admin Panel backend wiring (replace all mocked data in `src/pages/admin/` with real Supabase queries).
+2. Implement robust RBAC checking in the `authStore`.
+3. Add accessible `Select` and `Dialog` components across the customer-facing application.
+4. Multi-template support for document generation.
+5. Payment gateway integration (Stripe).
 
 ---
 
 ## Change Log
 
-### 2026-06-02
-- **Catalog Seeding**: Generated a comprehensive 100-item catering catalog seeder in `supabase/seed.sql`, categorized by appetizers, mains, beverages, and equipment.
-- **Phase 6.2 Completion**: 
- Refactored the onboarding flow to use a secure PostgreSQL RPC function (`create_organization_onboarding`). Successfully pushed consolidated, idempotent production schema to Supabase.
-- **Supabase Schema & RLS Hardening**: 
-  - Corrected schema architecture by moving custom helper functions to the `public` schema.
-  - Hardened RLS policies for strict multi-tenant isolation across all CRUD operations.
-  - Implemented secure storage policies using mandatory `organization_id` path prefixes.
-  - Added performance indexes for high-traffic foreign keys.
-  - Enforced automatic soft-delete filtering in database-level SELECT policies.
-  - Cleaned up function security with `SECURITY DEFINER` and safe `search_path`.
-  - Created `src/docs/supabase-fix-report.md` with detailed refactor details.
-- **Phase 6.1 Completion**: Implemented production Supabase backend architecture. 
-  - **Supabase Infrastructure**: Created complete SQL migrations (`20260602000000_production_init.sql` & `20260602000001_storage_setup.sql`).
-  - **Organization Ownership Enforcement**: Enforced `organization_id` on all business tables with foreign keys and cascade deletes.
-  - **RLS Status**: Row Level Security fully enabled on all tables using a `auth.user_organizations()` helper function for multi-tenant isolation.
-  - **Storage Status**: Created `logos` (public) and `documents` (private) buckets with RLS policies restricting access to organization members.
-  - Generated rigorous TypeScript database definitions in `src/types/database.ts`.
-- **Phase 6 Completion**: Refactored architecture for multi-tenancy. Added `organization_members`, updated all services/stores to use `organizationId`, created Onboarding flow, Team Management UI, and RLS documentation.
-- **Phase 5 Completion**: Implemented full Invoice Engine, Quotation-to-Invoice conversion, and Invoice PDF system.
-- **UI Stability Fix**: Removed phantom `CardDescription` component and stabilized the Card component system.
-- **Phase 4 Completion**: Implemented Branding system, Document snapshotting, and PDF/Print engine.
-- **Phase 1-3 Completion**: Fully implemented Customer Management, Item Catalog, and Quotation workflow.
-- Fixed build errors related to inconsistent imports and missing `index.ts` files.
-- Resolved TypeScript errors in `Badge.vue`, `Input.vue`, and `authService.ts`.
-- Cleaned up unused imports and variables across the project to comply with `noUnusedLocals`.
-- Verified successful production build with `npm run build`.
-- Updated `GEMINI.md` with new import conventions and checklist.
+### 2026-06-23 (Platform Administration System Implementation)
+- **Phase 4 Completion**: Implemented Platform Health & Support Tools UI
+  - Built `Health.vue` for monitoring of platform services and database metrics.
+  - Built `FeatureFlags.vue` for toggling global or targeted features.
+  - Built `Settings.vue` for managing platform defaults and toggling Maintenance Mode.
+  - Built `Support.vue` for finding user sessions and executing high-privilege cache/index actions.
+  - Wired these routes into the `AdminLayout` sidebar and Vue Router.
+- **Phase 1 & 2 Completion**: Implemented Admin Routing, Layout, and Entity Management UI
+  - Built isolated `/admin` route tree with platform admin middleware protection.
+  - Built `AdminLayout.vue` with a premium, dark-themed SaaS aesthetic.
+  - Built `Dashboard.vue` with KPI cards and chart placeholders.
+  - Built `Organizations.vue` and `OrganizationDetail.vue` for complete tenant oversight.
+  - Built `Users.vue` for platform-wide user management.
+- **Code Quality**: Cleaned up unused imports and resolved TypeScript strict-mode errors across all newly created admin views.
 
 ### 2026-06-13
 - **Quotation Builder Fix**: Resolved Vue 3 reactivity issues in the quotations store (`.push()`) so items properly display in the UI when added.
@@ -209,3 +157,14 @@
 - **Mandatory Organization Routing**: Added a Vue Router `beforeEach` guard to block unassigned authenticated users and force redirection to the `/onboarding` setup flow.
 - **RLS Hardening**: Validated RLS policies to enforce strict data isolation between different organizations and grant team visibility to organization leaders.
 - **Google Sign-In**: Integrated `signInWithOAuth` for Google authentication on the frontend.
+
+### 2026-06-02
+- **Catalog Seeding**: Generated a comprehensive 100-item catering catalog seeder.
+- **Phase 6.2 Completion**: Refactored the onboarding flow to use a secure PostgreSQL RPC function.
+- **Supabase Schema & RLS Hardening**: Corrected schema architecture, hardened RLS policies, implemented secure storage policies, added performance indexes.
+- **Phase 6.1 Completion**: Implemented production Supabase backend architecture (SQL migrations, organization ownership enforcement).
+- **Phase 6 Completion**: Refactored architecture for multi-tenancy.
+- **Phase 5 Completion**: Implemented full Invoice Engine, Quotation-to-Invoice conversion.
+- **UI Stability Fix**: Removed phantom `CardDescription` component and stabilized the Card component system.
+- **Phase 4 Completion**: Implemented Branding system, Document snapshotting, and PDF/Print engine.
+- **Phase 1-3 Completion**: Fully implemented Customer Management, Item Catalog, and Quotation workflow.
