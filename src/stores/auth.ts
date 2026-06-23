@@ -10,8 +10,18 @@ export const useAuthStore = defineStore('auth', () => {
   const organization = ref<any>(null);
   const loading = ref(true);
 
+  // Platform Admin State
+  const platformRoles = ref<string[]>([]);
+  const impersonatedOrganizationId = ref<string | null>(null);
+
   const isAuthenticated = computed(() => !!user.value);
-  const organizationId = computed(() => profile.value?.organization_id);
+  const organizationId = computed(() => impersonatedOrganizationId.value || profile.value?.organization_id);
+
+  const isPlatformAdmin = computed(() => {
+    return platformRoles.value.includes('super_admin') || platformRoles.value.includes('support_admin');
+  });
+
+  const isImpersonating = computed(() => !!impersonatedOrganizationId.value);
 
   function setUser(newUser: User | null) {
     user.value = newUser;
@@ -20,9 +30,12 @@ export const useAuthStore = defineStore('auth', () => {
   async function setSession(newSession: Session | null) {
     session.value = newSession;
     user.value = newSession?.user ?? null;
-    
+    console.log('setSession', newSession);
+
     if (newSession?.user) {
-      await fetchProfileAndOrganization();
+      console.log('Fetching profile and organization');
+      const res = await fetchProfileAndOrganization();
+      console.log('Profile and organization fetched', res);
     } else {
       profile.value = null;
       organization.value = null;
@@ -30,14 +43,25 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function fetchProfileAndOrganization() {
-    if (!user.value) return;
+    console.log('fetchProfileAndOrganization started for user:', user.value?.id);
 
+    if (!user.value) return;
+    
+    // We explicitly wrap the Supabase DB calls in a 1ms timeout.
+    // This forcibly pushes the execution out of the current microtask queue.
+    // When Supabase fires INITIAL_SESSION, it may still hold internal GoTrue locks
+    // that cause implicit getSession() calls (made by supabase.from) to deadlock.
+    await new Promise(resolve => setTimeout(resolve, 1));
+    
+    console.log('Executing profiles query...');
+    const PROFILE_FETCH_TIMEOUT_MS = 8000;
     let { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', user.value.id)
       .maybeSingle();
-    
+    console.log('profileData', profileData);
+    console.log('profileError', profileError);
     // Handle missing profile for OAuth sign-ins (if database trigger hasn't fired yet)
     if (!profileData && !profileError) {
       console.warn("Profile not found. Attempting to create a default profile.");
@@ -53,25 +77,58 @@ export const useAuthStore = defineStore('auth', () => {
         })
         .select()
         .maybeSingle();
-        
+
       if (newProfile) profileData = newProfile;
     }
 
     if (!profileError && profileData) {
       profile.value = profileData;
-      
-      if (profileData.organization_id) {
+
+      // If we are impersonating, we don't fetch the default org, we fetch the impersonated one
+      const activeOrgId = impersonatedOrganizationId.value || profileData.organization_id;
+
+      if (activeOrgId) {
         const { data: orgData, error: orgError } = await supabase
           .from('organizations')
           .select('*')
-          .eq('id', profileData.organization_id)
+          .eq('id', activeOrgId)
           .maybeSingle();
-          
+
         if (!orgError) {
           organization.value = orgData;
         }
       }
     }
+
+    // Check Platform Admin Role
+    const { data: isSuperAdmin } = await supabase.rpc('is_super_admin');
+    if (isSuperAdmin) {
+      platformRoles.value = ['super_admin'];
+    } else {
+      platformRoles.value = [];
+    }
+
+    // Debugging: Log all about the user who just logged in
+    console.log('[Auth Store] User Authentication State:', {
+      user: user.value,
+      profile: profile.value,
+      organization: organization.value,
+      organizationId: organizationId.value,
+      platformRoles: platformRoles.value,
+      isPlatformAdmin: isPlatformAdmin.value,
+      isImpersonating: isImpersonating.value
+    });
+  }
+
+  async function startImpersonating(orgId: string) {
+    if (!isPlatformAdmin.value) return;
+    impersonatedOrganizationId.value = orgId;
+    await fetchProfileAndOrganization();
+  }
+
+  async function stopImpersonating() {
+    impersonatedOrganizationId.value = null;
+    await fetchProfileAndOrganization();
   }
 
   function setLoading(val: boolean) {
@@ -86,9 +143,14 @@ export const useAuthStore = defineStore('auth', () => {
     organizationId,
     loading,
     isAuthenticated,
+    isPlatformAdmin,
+    isImpersonating,
+    impersonatedOrganizationId,
     setUser,
     setSession,
     fetchProfileAndOrganization,
+    startImpersonating,
+    stopImpersonating,
     setLoading,
   };
 });
