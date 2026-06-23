@@ -35,7 +35,11 @@ const handleLogin = async () => {
         await authStore.setSession(result.data.session)
       }
       
-      await router.push({ name: 'dashboard' })
+      if (authStore.isPlatformAdmin) {
+        await router.push({ name: 'admin-dashboard' })
+      } else {
+        await router.push({ name: 'dashboard' })
+      }
     }
   } catch (err: any) {
     errorMsg.value = err.message || 'An unexpected error occurred'
