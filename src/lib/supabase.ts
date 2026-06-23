@@ -8,10 +8,32 @@ import { env } from './env';
  * npx supabase gen types typescript --project-id <project-id> > src/types/supabase.ts
  * And then pass it to createClient<Database>(...)
  */
-export const supabase = createClient(
-  env.SUPABASE_URL || '',
-  env.SUPABASE_ANON_KEY || ''
+const supabaseUrl = env.SUPABASE_URL || '';
+const supabaseAnonKey = env.SUPABASE_ANON_KEY || '';
+
+// In development, Vite HMR can re-execute this file, creating multiple GoTrueClient instances
+// which contend for local storage locks and cause getSession() to hang.
+// We use globalThis to cache the instance to ensure a true singleton.
+declare global {
+  var __supabaseInstance: ReturnType<typeof createClient> | undefined;
+}
+
+export const supabase = globalThis.__supabaseInstance || createClient(
+  supabaseUrl,
+  supabaseAnonKey,
+  {
+    auth: {
+      persistSession: true,
+      autoRefreshToken: true,
+      detectSessionInUrl: true,
+      storageKey: 'cqis-auth-token', // Unique key to prevent overlap with other local projects
+    }
+  }
 );
+
+if (import.meta.env.DEV) {
+  globalThis.__supabaseInstance = supabase;
+}
 
 /**
  * Map common Supabase / PostgreSQL error codes to user-friendly messages.
