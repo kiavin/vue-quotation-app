@@ -1,9 +1,11 @@
 # CQIS - Catering Quotations & Invoicing System
 
 ## Project Overview
+
 CQIS is a modern web application for catering businesses to manage quotations, invoices, customers, and their item catalog. It emphasizes a premium SaaS aesthetic (Linear, Stripe, Vercel) and is built for scalability and maintainability.
 
 ## Architecture Decisions
+
 - **Framework:** Vue 3 (Composition API with `<script setup>`)
 - **Build Tool:** Vite
 - **Styling:** Tailwind CSS + shadcn-vue (Radix UI)
@@ -16,6 +18,7 @@ CQIS is a modern web application for catering businesses to manage quotations, i
 - **PDF Engine:** Component-based rendering using CSS Print media. Avoids heavy JS-only PDF libraries for better performance and maintainability.
 
 ## Folder Structure Rules
+
 - `src/assets/`: Global styles and static assets.
 - `src/components/ui/`: Base UI components (shadcn-vue).
 - `src/components/layout/`: Structural components like Sidebar and Topbar.
@@ -28,6 +31,7 @@ CQIS is a modern web application for catering businesses to manage quotations, i
 - `src/types/`: TypeScript interfaces and types.
 
 ## Coding Standards
+
 - **Naming Conventions:**
   - Components: PascalCase (e.g., `QuotationBuilder.vue`)
   - Files/Folders: kebab-case (except for components)
@@ -42,6 +46,7 @@ CQIS is a modern web application for catering businesses to manage quotations, i
   - Use `clsx` and `tailwind-merge` for dynamic classes.
 
 ## UI Component Export Rule
+
 - **Explicit Reality:** Only export components that physically exist in the file system.
 - **No Assumptions:** Never assume shadcn-vue structure unless explicitly installed via CLI.
 - **Manual Verification:** Every `index.ts` must be manually verified.
@@ -53,25 +58,32 @@ CQIS is a modern web application for catering businesses to manage quotations, i
   4. Has the project ever used this component before?
 
 ## UI Component Import Convention
+
 The project uses **Barrel Exports** for all UI components located in `src/components/ui`. This ensures consistency and cleaner import statements.
 
 ### Correct Usage
+
 Always use named imports from the component folder:
+
 ```typescript
-import { Button } from '@/components/ui/button'
-import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
+import { Button } from "@/components/ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 ```
 
 ### Incorrect Usage
+
 Never import directly from the `.vue` file for UI components:
+
 ```typescript
 // INCORRECT
-import Button from '@/components/ui/button/Button.vue'
-import { Input } from '@/components/ui/input/Input.vue'
+import Button from "@/components/ui/button/Button.vue";
+import { Input } from "@/components/ui/input/Input.vue";
 ```
 
 ### Import Convention Checklist
+
 Before adding or generating imports:
+
 1. **Verify Location:** Ensure the component is in `src/components/ui`.
 2. **Check Structure:** Confirm the component has a dedicated folder.
 3. **Verify index.ts:** Ensure an `index.ts` exists in the component folder and exports the component.
@@ -81,20 +93,23 @@ Before adding or generating imports:
 Failure to follow this convention will lead to build errors and is considered an implementation error.
 
 ## UI/UX Guidelines
+
 - **Typography:** Use Inter. Titles should be bold and well-spaced.
 - **Spacing:** Follow a strict 4px/8px grid (Tailwind defaults).
-- **Colors:** 
+- **Colors:**
   - Primary: `#0F766E` (Teal)
   - Secondary: `#0EA5E9` (Sky)
   - Accent: `#F59E0B` (Amber)
 - **Interactions:** Subtle hover states, soft shadows, and rounded corners (0.5rem/8px default).
 
 ## State Management (Pinia)
+
 - Stores must use the Composition API syntax.
 - Store logic should be focused on data fetching and state manipulation.
 - Computed properties in stores should be used for derived state (e.g., quotation totals).
 
 ## Responsiveness Requirements
+
 - Mobile-first approach.
 - Sidebar collapses on tablet/mobile into a hamburger menu or bottom bar.
 - Tables should be horizontally scrollable or transform into cards on small screens.
