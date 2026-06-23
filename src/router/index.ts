@@ -169,6 +169,68 @@ const router = createRouter({
       meta: { requiresAuth: true },
     },
     {
+      path: '/admin',
+      component: () => import('@/layouts/AdminLayout.vue'),
+      meta: { requiresAuth: true, requiresPlatformAdmin: true },
+      children: [
+        {
+          path: '',
+          name: 'admin-dashboard',
+          component: () => import('@/pages/admin/Dashboard.vue'),
+        },
+        {
+          path: 'organizations',
+          name: 'admin-organizations',
+          component: () => import('@/pages/admin/Organizations.vue'),
+        },
+        {
+          path: 'organizations/:id',
+          name: 'admin-org-detail',
+          component: () => import('@/pages/admin/OrganizationDetail.vue'),
+        },
+        {
+          path: 'users',
+          name: 'admin-users',
+          component: () => import('@/pages/admin/Users.vue'),
+        },
+        {
+          path: 'subscriptions',
+          name: 'admin-subscriptions',
+          component: () => import('@/pages/admin/Subscriptions.vue'),
+        },
+        {
+          path: 'analytics',
+          name: 'admin-analytics',
+          component: () => import('@/pages/admin/Analytics.vue'),
+        },
+        {
+          path: 'audit',
+          name: 'admin-audit',
+          component: () => import('@/pages/admin/AuditLogs.vue'),
+        },
+        {
+          path: 'health',
+          name: 'admin-health',
+          component: () => import('@/pages/admin/Health.vue'),
+        },
+        {
+          path: 'flags',
+          name: 'admin-flags',
+          component: () => import('@/pages/admin/FeatureFlags.vue'),
+        },
+        {
+          path: 'settings',
+          name: 'admin-settings',
+          component: () => import('@/pages/admin/Settings.vue'),
+        },
+        {
+          path: 'support',
+          name: 'admin-support',
+          component: () => import('@/pages/admin/Support.vue'),
+        },
+      ],
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'NotFound',
       component: () => import('@/pages/NotFound.vue'),
@@ -179,27 +241,13 @@ const router = createRouter({
 router.beforeEach(async (to, _from, next) => {
   const authStore = useAuthStore()
 
-  // Guest-only routes (landing, login) render immediately — no auth wait
-  // Auth-required routes must wait for auth to resolve
-  if (authStore.loading && to.meta.requiresAuth) {
+  // Only block navigation for routes that actually require knowing auth state up front
+  if (authStore.loading && (to.meta.requiresAuth || to.meta.guestOnly)) {
     await new Promise<void>((resolve) => {
-      // If loading is already false, resolve immediately
-      if (!authStore.loading) {
-        return resolve()
-      }
-      
       const unwatch = watch(() => authStore.loading, (isLoading) => {
-        if (!isLoading) {
-          unwatch()
-          resolve()
-        }
+        if (!isLoading) { unwatch(); resolve() }
       })
-      
-      // Double check in case it resolved synchronously before watcher was created
-      if (!authStore.loading) {
-        unwatch()
-        resolve()
-      }
+      if (!authStore.loading) { unwatch(); resolve() }
     })
   }
 
@@ -208,10 +256,12 @@ router.beforeEach(async (to, _from, next) => {
 
   if (to.meta.requiresAuth && !isAuthenticated) {
     next({ name: 'login' })
+  } else if (to.meta.requiresPlatformAdmin && !authStore.isPlatformAdmin) {
+    next({ name: 'NotFound' })
   } else if (to.meta.guestOnly && isAuthenticated) {
-    next({ name: 'dashboard' })
-  } else if (isAuthenticated && !hasOrganization && to.name !== 'onboarding') {
-    next({ name: 'onboarding' })
+    next({ name: authStore.isPlatformAdmin ? 'admin-dashboard' : 'dashboard' })
+  } else if (isAuthenticated && !hasOrganization && to.name !== 'onboarding' && !to.meta.requiresPlatformAdmin) {
+    next({ name: authStore.isPlatformAdmin ? 'admin-dashboard' : 'onboarding' })
   } else if (isAuthenticated && hasOrganization && to.name === 'onboarding') {
     next({ name: 'dashboard' })
   } else {
