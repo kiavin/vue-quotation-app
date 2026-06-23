@@ -13,7 +13,7 @@ import {
 import { Plus, Search, Settings2 } from "lucide-vue-next";
 import { Input } from "@/components/ui/input";
 
-import { onMounted, computed, ref } from "vue";
+import { onMounted, computed } from "vue";
 import { useAdminStore } from "@/stores/admin";
 
 const adminStore = useAdminStore();

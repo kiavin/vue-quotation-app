@@ -54,7 +54,7 @@ export const useAuthStore = defineStore('auth', () => {
     await new Promise(resolve => setTimeout(resolve, 1));
     
     console.log('Executing profiles query...');
-    const PROFILE_FETCH_TIMEOUT_MS = 8000;
+
     let { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('*')

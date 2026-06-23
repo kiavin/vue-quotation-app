@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { BarChart3, Activity, Users, FileText, Download } from 'lucide-vue-next'
+import { BarChart3, Activity, FileText, Download } from 'lucide-vue-next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { adminService } from '@/services/adminService'
 import { Button } from '@/components/ui/button'
-import { Line, Bar } from 'vue-chartjs'
+import { Line } from 'vue-chartjs'
 import {
   Chart as ChartJS,
   CategoryScale,

@@ -130,7 +130,7 @@ export const invoiceService = {
       // 3. Insert Invoice
       const { data: newInvoice, error: invError } = await supabase
         .from('invoices')
-        .insert(invoice)
+        .insert(invoice as any)
         .select()
         .single()
       
@@ -148,7 +148,7 @@ export const invoiceService = {
 
       const { error: itemError } = await supabase
         .from('invoice_items')
-        .insert(invoiceItems)
+        .insert(invoiceItems as any)
       
       if (itemError) throw itemError
 
@@ -157,7 +157,7 @@ export const invoiceService = {
         await supabase
           .from('quotations')
           .update({ status: 'approved' })
-          .eq('id', quotation.id)
+          .eq('id', quotation.id as string)
       }
 
       return apiSuccess(newInvoice, {

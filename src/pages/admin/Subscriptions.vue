@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { adminService } from '@/services/adminService'
-import { CreditCard, DollarSign, Users, AlertCircle } from 'lucide-vue-next'
+import { CreditCard, DollarSign, AlertCircle } from 'lucide-vue-next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 

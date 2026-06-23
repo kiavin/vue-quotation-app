@@ -28,7 +28,7 @@ export const organizationService = {
     try {
       const { data, error } = await supabase
         .from('organizations')
-        .update(updates)
+        .update(updates as any)
         .eq('id', id)
         .select()
         .single()

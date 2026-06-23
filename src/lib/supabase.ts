@@ -1,13 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import { env } from './env';
+import type { Database } from '@/types/database.types';
 
-/**
- * Typed Supabase Client
- * 
- * TODO: In the future, we can generate database types using the Supabase CLI:
- * npx supabase gen types typescript --project-id <project-id> > src/types/supabase.ts
- * And then pass it to createClient<Database>(...)
- */
 const supabaseUrl = env.SUPABASE_URL || '';
 const supabaseAnonKey = env.SUPABASE_ANON_KEY || '';
 
@@ -15,10 +9,10 @@ const supabaseAnonKey = env.SUPABASE_ANON_KEY || '';
 // which contend for local storage locks and cause getSession() to hang.
 // We use globalThis to cache the instance to ensure a true singleton.
 declare global {
-  var __supabaseInstance: ReturnType<typeof createClient> | undefined;
+  var __supabaseInstance: ReturnType<typeof createClient<Database>> | undefined;
 }
 
-export const supabase = globalThis.__supabaseInstance || createClient(
+export const supabase = globalThis.__supabaseInstance || createClient<Database>(
   supabaseUrl,
   supabaseAnonKey,
   {

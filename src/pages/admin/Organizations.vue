@@ -27,11 +27,11 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 import { onMounted, computed, ref } from "vue";
-import { useRouter } from "vue-router";
+
 import { useAdminStore } from "@/stores/admin";
 import { useAuthStore } from "@/stores/auth";
 
-const router = useRouter();
+;
 const adminStore = useAdminStore();
 const authStore = useAuthStore();
 

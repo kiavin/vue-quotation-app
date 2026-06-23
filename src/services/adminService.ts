@@ -28,7 +28,7 @@ export const adminService = {
 
       if (error) throw error
 
-      return data || []
+      return (data as any) || []
     } catch (error) {
       console.error('Failed to fetch platform organizations', error)
       throw new Error(mapSupabaseError(error))
@@ -75,7 +75,7 @@ export const adminService = {
         .order('name', { ascending: true })
 
       if (error) throw error
-      return data || []
+      return (data as any) || []
     } catch (error) {
       console.error('Failed to fetch feature flags', error)
       throw new Error(mapSupabaseError(error))
@@ -111,7 +111,7 @@ export const adminService = {
     try {
       const { data, error } = await supabase.rpc('admin_get_time_series_metrics')
       if (error) throw error
-      return data || []
+      return (data as any) || []
     } catch (error) {
       console.error('Failed to fetch time series metrics', error)
       throw new Error(mapSupabaseError(error))
@@ -122,7 +122,7 @@ export const adminService = {
     try {
       const { data, error } = await supabase.rpc('admin_get_users')
       if (error) throw error
-      return data || []
+      return (data as any) || []
     } catch (error) {
       console.error('Failed to fetch users', error)
       throw new Error(mapSupabaseError(error))
@@ -163,12 +163,13 @@ export const adminService = {
       const { data, error } = await supabase.rpc('admin_get_platform_metrics')
       if (error) throw error
       
+      const metrics = data as any
       // Map platform metrics to analytics structure
       return {
         platform: {
-          totalQuotes: data.total_quotes || 0,
-          totalInvoices: data.total_invoices || 0,
-          totalRevenue: data.total_revenue || 0
+          totalQuotes: metrics?.total_quotes || 0,
+          totalInvoices: metrics?.total_invoices || 0,
+          totalRevenue: metrics?.total_revenue || 0
         },
         traffic: {
           pageViews: 0,
@@ -209,7 +210,7 @@ export const adminService = {
     try {
       const { data, error } = await supabase.rpc('admin_get_users')
       if (error) throw error
-      const users = data || []
+      const users = (data as any[]) || []
       return users.find((u: any) => u.email.toLowerCase() === email.toLowerCase()) || null
     } catch (error) {
       console.error('Failed to fetch user by email', error)

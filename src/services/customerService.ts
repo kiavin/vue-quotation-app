@@ -65,7 +65,7 @@ export const customerService = {
     try {
       const { data, error } = await supabase
         .from('customers')
-        .insert(customer)
+        .insert(customer as any)
         .select()
         .single()
       
@@ -90,7 +90,7 @@ export const customerService = {
     try {
       const { data, error } = await supabase
         .from('customers')
-        .update(updates)
+        .update(updates as any)
         .eq('id', id)
         .select()
         .single()

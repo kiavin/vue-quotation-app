@@ -102,7 +102,7 @@ export const quotationService = {
       // 1. Insert quotation
       const { data: newQuotation, error: qError } = await supabase
         .from('quotations')
-        .insert(quotation)
+        .insert(quotation as any)
         .select()
         .single()
       
@@ -117,7 +117,7 @@ export const quotationService = {
 
       const { error: iError } = await supabase
         .from('quotation_items')
-        .insert(itemsWithQuoId)
+        .insert(itemsWithQuoId as any)
       
       if (iError) throw iError
 
@@ -142,7 +142,7 @@ export const quotationService = {
       // 1. Update quotation
       const { error: qError } = await supabase
         .from('quotations')
-        .update(updates)
+        .update(updates as any)
         .eq('id', id)
       
       if (qError) throw qError
@@ -163,7 +163,7 @@ export const quotationService = {
 
       const { error: iError } = await supabase
         .from('quotation_items')
-        .insert(itemsWithQuoId)
+        .insert(itemsWithQuoId as any)
       
       if (iError) throw iError
 

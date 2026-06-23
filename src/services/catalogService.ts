@@ -75,7 +75,7 @@ export const catalogService = {
     try {
       const { data, error } = await supabase
         .from('categories')
-        .insert(category)
+        .insert(category as any)
         .select()
         .single()
       
@@ -100,7 +100,7 @@ export const catalogService = {
     try {
       const { data, error } = await supabase
         .from('categories')
-        .update(updates)
+        .update(updates as any)
         .eq('id', id)
         .select()
         .single()
@@ -155,7 +155,7 @@ export const catalogService = {
 
       const { data, error } = await supabase
         .from('items')
-        .insert(itemData)
+        .insert(itemData as any)
         .select()
         .single()
       
@@ -185,7 +185,7 @@ export const catalogService = {
 
       const { data, error } = await supabase
         .from('items')
-        .update(updateData)
+        .update(updateData as any)
         .eq('id', id)
         .select()
         .single()
