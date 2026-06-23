@@ -1,7 +1,7 @@
 import { supabase, mapSupabaseError } from '@/lib/supabase';
 import { apiSuccess, apiError } from '@/types/api-response';
 import type { ApiResponse } from '@/types/api-response';
-import type { AuthResponse, SignInWithPasswordCredentials } from '@supabase/supabase-js';
+import type { AuthResponse, SignInWithPasswordCredentials, Session } from '@supabase/supabase-js';
 
 export const authService = {
   /**
@@ -11,7 +11,7 @@ export const authService = {
     try {
       const response = await supabase.auth.signInWithPassword(credentials);
       if (response.error) throw response.error;
-      
+
       return apiSuccess(response.data, {
         type: 'toast',
         title: 'Welcome Back!',
@@ -45,7 +45,7 @@ export const authService = {
         }
       });
       if (response.error) throw response.error;
-      
+
       return apiSuccess(response.data, {
         type: 'toast',
         title: 'Account Created',
@@ -80,25 +80,31 @@ export const authService = {
     }
   },
 
-  async getSession() {
-    const SESSION_TIMEOUT_MS = 10000; // 10 seconds max wait
+  async getSession(retried = false): Promise<Session | null> {
+    console.log('getSession called', retried);
 
+    const SESSION_TIMEOUT_MS = 8000;
     try {
-      const sessionPromise = (async () => {
-        const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
-        if (sessionError || !sessionData.session) throw sessionError || new Error('No session');
-        
-        return sessionData.session;
-      })();
+      const result = await Promise.race([
+        supabase.auth.getSession().then(({ data, error }) => {
+          if (error) throw error;
+          return data.session;
+        }),
+        new Promise<'TIMEOUT'>((resolve) => setTimeout(() => resolve('TIMEOUT'), SESSION_TIMEOUT_MS)),
+      ]);
 
-      const timeoutPromise = new Promise<null>((_, reject) => {
-        setTimeout(() => reject(new Error('Session verification timed out')), SESSION_TIMEOUT_MS);
-      });
-
-      return await Promise.race([sessionPromise, timeoutPromise]);
+      if (result === 'TIMEOUT') {
+        console.warn('getSession timed out');
+        if (!retried) {
+          // one retry — often clears a transient lock/network stall
+          return this.getSession(true);
+        }
+        throw new Error('Session verification timed out after retry');
+      }
+      return result;
     } catch (error) {
       console.error('Session error:', error);
-      return null;
+      return null; // here, null genuinely means "couldn't determine" — caller should NOT treat this as definitive logout
     }
   },
 
