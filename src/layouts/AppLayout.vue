@@ -52,7 +52,6 @@ const navigation = [
   { name: 'Invoices', href: '/invoices', icon: FileText },
   { name: 'Branding', href: '/branding', icon: Palette },
   { name: 'Team', href: '/team', icon: Users },
-  { name: 'Organizations', href: '/organizations', icon: Settings },
   { name: 'Settings', href: '/settings', icon: Settings },
 ]
 
