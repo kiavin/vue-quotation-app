@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { adminService } from '@/services/adminService'
 import { Button } from '@/components/ui/button'
+import { useCurrency } from '@/composables/useCurrency'
 import { Line } from 'vue-chartjs'
 import {
   Chart as ChartJS,
@@ -31,6 +32,7 @@ ChartJS.register(
 
 const loading = ref(true)
 const analytics = ref<any>(null)
+const { formatGlobalCurrency } = useCurrency()
 
 const chartOptions = {
   responsive: true,
@@ -135,7 +137,7 @@ onMounted(async () => {
               <Activity class="w-4 h-4 text-slate-400" />
             </CardHeader>
             <CardContent>
-              <div class="text-2xl font-bold text-emerald-600" v-if="!loading">${{ analytics?.platform?.totalRevenue.toLocaleString() }}</div>
+              <div class="text-2xl font-bold text-emerald-600" v-if="!loading">{{ formatGlobalCurrency(analytics?.platform?.totalRevenue || 0) }}</div>
               <div v-else class="h-8 w-24 bg-slate-100 rounded animate-pulse"></div>
             </CardContent>
           </Card>

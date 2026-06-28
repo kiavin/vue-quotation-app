@@ -14,8 +14,10 @@ import { Button } from "@/components/ui/button";
 import { dashboardService } from "@/services/dashboardService";
 import { quotationService, type Quotation } from "@/services/quotationService";
 import { useAuthStore } from "@/stores/auth";
+import { useCurrency } from "@/composables/useCurrency";
 
 const authStore = useAuthStore();
+const { formatGlobalCurrency } = useCurrency();
 const isLoading = ref(true);
 const stats = ref([
   {
@@ -48,14 +50,14 @@ const stats = ref([
   },
   {
     name: "Revenue (MTD)",
-    value: "$0",
+    value: formatGlobalCurrency(0),
     icon: TrendingUp,
     change: "0%",
     changeType: "neutral",
   },
   {
     name: "Outstanding",
-    value: "$0",
+    value: formatGlobalCurrency(0),
     icon: TrendingUp,
     change: "0%",
     changeType: "neutral",
@@ -63,13 +65,6 @@ const stats = ref([
 ]);
 
 const recentQuotations = ref<Quotation[]>([]);
-
-const formatCurrency = (amount: number) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: authStore.organization?.currency || "USD",
-  }).format(amount);
-};
 
 onMounted(async () => {
   if (!authStore.organizationId) return;
@@ -113,14 +108,14 @@ onMounted(async () => {
         },
         {
           name: "Revenue (MTD)",
-          value: formatCurrency(aggregatedStats.totalRevenue),
+          value: formatGlobalCurrency(aggregatedStats.totalRevenue),
           icon: TrendingUp,
           change: "--",
           changeType: "neutral",
         },
         {
           name: "Outstanding",
-          value: formatCurrency(aggregatedStats.outstandingAmount),
+          value: formatGlobalCurrency(aggregatedStats.outstandingAmount),
           icon: TrendingUp,
           change: "--",
           changeType: "neutral",
@@ -258,7 +253,7 @@ onMounted(async () => {
                 <div class="flex items-center gap-4">
                   <div class="text-right mr-4">
                     <p class="font-bold text-slate-900">
-                      {{ formatCurrency(quo.total) }}
+                      {{ formatGlobalCurrency(quo.total) }}
                     </p>
                     <p class="text-xs capitalize text-slate-500">
                       {{ quo.status }}

@@ -10,6 +10,7 @@ import {
 } from 'lucide-vue-next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { adminService } from '@/services/adminService'
+import { useCurrency } from '@/composables/useCurrency'
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -35,6 +36,7 @@ ChartJS.register(
 )
 
 const loading = ref(true)
+const { formatGlobalCurrency } = useCurrency()
 const stats = ref([
   { 
     name: 'Total Organizations', 
@@ -54,7 +56,7 @@ const stats = ref([
   },
   { 
     name: 'Total Processed Revenue', 
-    value: '$0', 
+    value: formatGlobalCurrency(0), 
     change: '+15%', 
     trend: 'up',
     icon: CreditCard,
@@ -116,7 +118,7 @@ onMounted(async () => {
 
     stats.value[0].value = metricsData.total_organizations?.toLocaleString() || '0'
     stats.value[1].value = metricsData.active_users?.toLocaleString() || '0'
-    stats.value[2].value = `$${metricsData.total_revenue?.toLocaleString() || '0'}`
+    stats.value[2].value = formatGlobalCurrency(metricsData.total_revenue || 0)
     stats.value[3].value = ((metricsData.total_quotes || 0) + (metricsData.total_invoices || 0)).toLocaleString()
 
     if (timeSeries && timeSeries.length > 0) {
