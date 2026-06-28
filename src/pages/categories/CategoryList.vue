@@ -15,6 +15,8 @@ import {
   TableRow, 
   TableCell 
 } from '@/components/ui/table'
+import DataTablePagination from '@/components/shared/DataTablePagination.vue'
+import { usePagination } from '@/composables/usePagination'
 
 const router = useRouter()
 const catalogStore = useCatalogStore()
@@ -48,6 +50,13 @@ const filteredCategories = computed(() => {
     (cat.description && cat.description.toLowerCase().includes(query))
   )
 })
+
+const {
+  currentPage,
+  itemsPerPage,
+  totalItems,
+  paginatedItems
+} = usePagination(filteredCategories)
 </script>
 
 <template>
@@ -81,7 +90,7 @@ const filteredCategories = computed(() => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow v-for="category in filteredCategories" :key="category.id">
+            <TableRow v-for="category in paginatedItems" :key="category.id">
               <TableCell class="font-medium">{{ category.name }}</TableCell>
               <TableCell class="text-slate-500">{{ category.description || 'No description' }}</TableCell>
               <TableCell>
@@ -107,6 +116,12 @@ const filteredCategories = computed(() => {
             </TableRow>
           </TableBody>
         </Table>
+        <DataTablePagination 
+          v-if="!catalogStore.loading && totalItems > 0"
+          :total-items="totalItems"
+          v-model:current-page="currentPage"
+          v-model:items-per-page="itemsPerPage"
+        />
       </CardContent>
     </Card>
   </div>

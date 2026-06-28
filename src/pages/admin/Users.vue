@@ -28,6 +28,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { adminService } from '@/services/adminService'
+import DataTablePagination from '@/components/shared/DataTablePagination.vue'
+import { usePagination } from '@/composables/usePagination'
 
 const users = ref<any[]>([])
 const loading = ref(true)
@@ -53,6 +55,13 @@ const filteredUsers = computed(() => {
     user.organization?.toLowerCase().includes(query)
   )
 })
+
+const {
+  currentPage,
+  itemsPerPage,
+  totalItems,
+  paginatedItems
+} = usePagination(filteredUsers)
 </script>
 
 <template>
@@ -101,7 +110,7 @@ const filteredUsers = computed(() => {
           <TableRow v-else-if="filteredUsers.length === 0">
             <TableCell colspan="6" class="h-24 text-center text-slate-500">No users found.</TableCell>
           </TableRow>
-          <TableRow v-for="user in filteredUsers" :key="user.id" v-else>
+          <TableRow v-for="user in paginatedItems" :key="user.id" v-else>
             <TableCell>
               <div class="flex items-center gap-3">
                 <div class="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-slate-500 font-bold text-xs uppercase">
@@ -165,6 +174,12 @@ const filteredUsers = computed(() => {
           </TableRow>
         </TableBody>
       </Table>
+      <DataTablePagination 
+        v-if="!loading && totalItems > 0"
+        :total-items="totalItems"
+        v-model:current-page="currentPage"
+        v-model:items-per-page="itemsPerPage"
+      />
     </div>
   </div>
 </template>

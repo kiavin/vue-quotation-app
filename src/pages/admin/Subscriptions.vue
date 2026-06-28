@@ -4,6 +4,8 @@ import { adminService } from '@/services/adminService'
 import { CreditCard, DollarSign, AlertCircle } from 'lucide-vue-next'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import DataTablePagination from '@/components/shared/DataTablePagination.vue'
+import { usePagination } from '@/composables/usePagination'
 
 const subscriptions = ref<any[]>([])
 const loading = ref(true)
@@ -13,6 +15,13 @@ const stats = ref([
   { name: 'Active Subscriptions', value: '0', icon: CreditCard },
   { name: 'Past Due', value: '0', icon: AlertCircle },
 ])
+
+const {
+  currentPage,
+  itemsPerPage,
+  totalItems,
+  paginatedItems
+} = usePagination(subscriptions)
 
 onMounted(async () => {
   try {
@@ -83,7 +92,7 @@ onMounted(async () => {
           <TableRow v-else-if="subscriptions.length === 0">
             <TableCell colspan="5" class="text-center py-8 text-slate-500">No subscriptions found.</TableCell>
           </TableRow>
-          <TableRow v-for="sub in subscriptions" :key="sub.id" v-else>
+          <TableRow v-for="sub in paginatedItems" :key="sub.id" v-else>
             <TableCell class="font-medium text-slate-900">{{ sub.orgName }}</TableCell>
             <TableCell>
               <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-indigo-50 text-indigo-700">
@@ -105,6 +114,12 @@ onMounted(async () => {
           </TableRow>
         </TableBody>
       </Table>
+      <DataTablePagination 
+        v-if="!loading && totalItems > 0"
+        :total-items="totalItems"
+        v-model:current-page="currentPage"
+        v-model:items-per-page="itemsPerPage"
+      />
     </div>
   </div>
 </template>

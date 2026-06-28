@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import CustomerTable from '@/components/forms/CustomerTable.vue'
+import DataTablePagination from '@/components/shared/DataTablePagination.vue'
+import { usePagination } from '@/composables/usePagination'
 import type { Customer } from '@/services/customerService'
 import { notify } from '@/lib/notify'
 
@@ -27,6 +29,13 @@ const filteredCustomers = computed(() => {
     c.phone?.includes(query)
   )
 })
+
+const {
+  currentPage,
+  itemsPerPage,
+  totalItems,
+  paginatedItems
+} = usePagination(filteredCustomers)
 
 const handleEdit = (customer: Customer) => {
   router.push(`/customers/${customer.id}/edit`)
@@ -80,11 +89,17 @@ const handleDelete = async (customer: Customer) => {
 
         <div v-else>
           <CustomerTable 
-            :customers="filteredCustomers" 
+            :customers="paginatedItems" 
             :is-loading="customerStore.loading"
             @edit="handleEdit"
             @view="handleView"
             @delete="handleDelete"
+          />
+          <DataTablePagination 
+            v-if="!customerStore.loading && totalItems > 0"
+            :total-items="totalItems"
+            v-model:current-page="currentPage"
+            v-model:items-per-page="itemsPerPage"
           />
         </div>
       </CardContent>

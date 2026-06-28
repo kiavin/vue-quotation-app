@@ -10,6 +10,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import CatalogTable from '@/components/forms/CatalogTable.vue'
 import CategoryTable from '@/components/forms/CategoryTable.vue'
+import DataTablePagination from '@/components/shared/DataTablePagination.vue'
+import { usePagination } from '@/composables/usePagination'
 import type { Item, Category } from '@/services/catalogService'
 import { cn } from '@/utils/utils'
 import { notify } from '@/lib/notify'
@@ -59,6 +61,20 @@ const filteredItems = computed(() => {
   
   return items
 })
+
+const {
+  currentPage: itemsPage,
+  itemsPerPage: itemsLimit,
+  totalItems: itemsTotal,
+  paginatedItems
+} = usePagination(filteredItems)
+
+const {
+  currentPage: catPage,
+  itemsPerPage: catLimit,
+  totalItems: catTotal,
+  paginatedItems: paginatedCategories
+} = usePagination(computed(() => catalogStore.categories))
 
 const handleEditItem = (item: Item) => {
   router.push(`/catalog/${item.id}/edit`)
@@ -177,10 +193,16 @@ const handleDeleteCategory = async (category: Category) => {
       <Card>
         <CardContent class="p-0">
           <CatalogTable 
-            :items="filteredItems" 
+            :items="paginatedItems" 
             :is-loading="catalogStore.loading"
             @edit="handleEditItem"
             @delete="handleDeleteItem"
+          />
+          <DataTablePagination 
+            v-if="!catalogStore.loading && itemsTotal > 0"
+            :total-items="itemsTotal"
+            v-model:current-page="itemsPage"
+            v-model:items-per-page="itemsLimit"
           />
         </CardContent>
       </Card>
@@ -202,9 +224,15 @@ const handleDeleteCategory = async (category: Category) => {
           </div>
           <CategoryTable 
             v-else
-            :categories="catalogStore.categories" 
+            :categories="paginatedCategories" 
             @edit="openCategoryModal"
             @delete="handleDeleteCategory"
+          />
+          <DataTablePagination 
+            v-if="!catalogStore.loading && catTotal > 0"
+            :total-items="catTotal"
+            v-model:current-page="catPage"
+            v-model:items-per-page="catLimit"
           />
         </CardContent>
       </Card>

@@ -16,6 +16,8 @@ import {
 } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
 import QuotationStatusBadge from '@/components/shared/QuotationStatusBadge.vue'
+import DataTablePagination from '@/components/shared/DataTablePagination.vue'
+import { usePagination } from '@/composables/usePagination'
 import { quotationService } from '@/services/quotationService'
 import { notify } from '@/lib/notify'
 
@@ -36,6 +38,13 @@ const filteredQuotations = computed(() => {
     (q.title && q.title.toLowerCase().includes(query))
   )
 })
+
+const {
+  currentPage,
+  itemsPerPage,
+  totalItems,
+  paginatedItems
+} = usePagination(filteredQuotations)
 
 const formatCurrency = (val: number) => {
   return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val)
@@ -131,7 +140,7 @@ const handleDelete = async (id?: string) => {
                 </TableRow>
               </template>
               <template v-else>
-                <TableRow v-for="quo in filteredQuotations" :key="quo.id">
+                <TableRow v-for="quo in paginatedItems" :key="quo.id">
                 <TableCell class="font-medium">
                   <div>
                     <span>{{ quo.number }}</span>
@@ -174,6 +183,12 @@ const handleDelete = async (id?: string) => {
               </template>
               </TableBody>
             </Table>
+            <DataTablePagination 
+              v-if="!quotationStore.loading && totalItems > 0"
+              :total-items="totalItems"
+              v-model:current-page="currentPage"
+              v-model:items-per-page="itemsPerPage"
+            />
           </div>
 
           <!-- Mobile Card List -->
@@ -199,7 +214,7 @@ const handleDelete = async (id?: string) => {
             </template>
             <template v-else>
               <div 
-                v-for="quo in filteredQuotations" 
+                v-for="quo in paginatedItems" 
                 :key="quo.id" 
                 class="p-4 space-y-3 cursor-pointer hover:bg-slate-50 transition-colors"
                 @click="handleView(quo.id)"

@@ -13,8 +13,10 @@ import {
 import { Plus, Search, Settings2 } from "lucide-vue-next";
 import { Input } from "@/components/ui/input";
 
-import { onMounted, computed } from "vue";
+import { onMounted, computed, ref } from "vue";
 import { useAdminStore } from "@/stores/admin";
+import DataTablePagination from '@/components/shared/DataTablePagination.vue';
+import { usePagination } from '@/composables/usePagination';
 
 const adminStore = useAdminStore();
 
@@ -22,9 +24,22 @@ onMounted(() => {
   adminStore.fetchFeatureFlags();
 });
 
+const searchQuery = ref("");
 const flags = computed(() => {
-  return adminStore.featureFlags;
+  if (!searchQuery.value) return adminStore.featureFlags;
+  const q = searchQuery.value.toLowerCase();
+  return adminStore.featureFlags.filter(f => 
+    f.name.toLowerCase().includes(q) || 
+    f.key.toLowerCase().includes(q)
+  );
 });
+
+const {
+  currentPage,
+  itemsPerPage,
+  totalItems,
+  paginatedItems
+} = usePagination(flags);
 
 const toggleFlag = async (flagId: string, currentEnabled: boolean) => {
   await adminStore.toggleFeatureFlag(flagId, !currentEnabled);
@@ -65,7 +80,7 @@ const getStatusColor = (isEnabled: boolean) => {
         <Search
           class="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400"
         />
-        <Input placeholder="Search feature flags..." class="pl-9" />
+        <Input v-model="searchQuery" placeholder="Search feature flags..." class="pl-9" />
       </div>
       <Button variant="outline">
         <Settings2 class="w-4 h-4 mr-2" />
@@ -87,7 +102,7 @@ const getStatusColor = (isEnabled: boolean) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          <TableRow v-for="flag in flags" :key="flag.id">
+          <TableRow v-for="flag in paginatedItems" :key="flag.id">
             <TableCell>
               <div>
                 <div class="font-medium text-slate-900">{{ flag.name }}</div>
@@ -144,6 +159,12 @@ const getStatusColor = (isEnabled: boolean) => {
           </TableRow>
         </TableBody>
       </Table>
+      <DataTablePagination 
+        v-if="flags.length > 0"
+        :total-items="totalItems"
+        v-model:current-page="currentPage"
+        v-model:items-per-page="itemsPerPage"
+      />
     </Card>
   </div>
 </template>

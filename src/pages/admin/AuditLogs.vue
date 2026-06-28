@@ -5,6 +5,8 @@ import { adminService } from '@/services/adminService'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import DataTablePagination from '@/components/shared/DataTablePagination.vue'
+import { usePagination } from '@/composables/usePagination'
 
 const logs = ref<any[]>([])
 const loading = ref(true)
@@ -30,6 +32,13 @@ const filteredLogs = computed(() => {
     log.organization.toLowerCase().includes(query)
   )
 })
+
+const {
+  currentPage,
+  itemsPerPage,
+  totalItems,
+  paginatedItems
+} = usePagination(filteredLogs)
 </script>
 
 <template>
@@ -85,7 +94,7 @@ const filteredLogs = computed(() => {
           <TableRow v-else-if="filteredLogs.length === 0">
             <TableCell colspan="5" class="h-24 text-center text-slate-500">No logs match your search.</TableCell>
           </TableRow>
-          <TableRow v-for="log in filteredLogs" :key="log.id" v-else>
+          <TableRow v-for="log in paginatedItems" :key="log.id" v-else>
             <TableCell class="text-slate-500 whitespace-nowrap">
               {{ new Date(log.timestamp).toLocaleString() }}
             </TableCell>
@@ -100,6 +109,12 @@ const filteredLogs = computed(() => {
           </TableRow>
         </TableBody>
       </Table>
+      <DataTablePagination 
+        v-if="!loading && totalItems > 0"
+        :total-items="totalItems"
+        v-model:current-page="currentPage"
+        v-model:items-per-page="itemsPerPage"
+      />
     </div>
   </div>
 </template>

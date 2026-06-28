@@ -30,6 +30,8 @@ import { onMounted, computed, ref } from "vue";
 
 import { useAdminStore } from "@/stores/admin";
 import { useAuthStore } from "@/stores/auth";
+import DataTablePagination from '@/components/shared/DataTablePagination.vue';
+import { usePagination } from '@/composables/usePagination';
 
 ;
 const adminStore = useAdminStore();
@@ -45,6 +47,13 @@ const organizations = computed(() => {
     return org.name.toLowerCase().includes(searchQuery.value.toLowerCase());
   });
 });
+
+const {
+  currentPage,
+  itemsPerPage,
+  totalItems,
+  paginatedItems
+} = usePagination(organizations);
 
 const searchQuery = ref("");
 
@@ -93,7 +102,7 @@ const toggleSuspension = async (orgId: string, currentStatus: string) => {
       >
         <div class="relative w-full max-w-sm">
           <Search class="absolute left-2.5 top-2.5 h-4 w-4 text-slate-400" />
-          <Input placeholder="Search organizations..." class="pl-9 bg-white" />
+          <Input v-model="searchQuery" placeholder="Search organizations..." class="pl-9 bg-white" />
         </div>
       </div>
 
@@ -110,7 +119,7 @@ const toggleSuspension = async (orgId: string, currentStatus: string) => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          <TableRow v-for="org in organizations" :key="org.id">
+          <TableRow v-for="org in paginatedItems" :key="org.id">
             <TableCell class="font-medium text-slate-900">{{
               org.name
             }}</TableCell>
@@ -196,6 +205,12 @@ const toggleSuspension = async (orgId: string, currentStatus: string) => {
           </TableRow>
         </TableBody>
       </Table>
+      <DataTablePagination 
+        v-if="adminStore.organizations.length > 0"
+        :total-items="totalItems"
+        v-model:current-page="currentPage"
+        v-model:items-per-page="itemsPerPage"
+      />
     </div>
   </div>
 </template>

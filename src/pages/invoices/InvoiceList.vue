@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { onMounted, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
 import { useInvoicesStore } from '@/stores/invoices'
 import { Plus, Search, Eye } from 'lucide-vue-next'
@@ -15,17 +15,34 @@ import {
 } from '@/components/ui/table'
 import { Skeleton } from '@/components/ui/skeleton'
 import InvoiceStatusBadge from '@/components/shared/InvoiceStatusBadge.vue'
+import DataTablePagination from '@/components/shared/DataTablePagination.vue'
+import { usePagination } from '@/composables/usePagination'
+import { useCurrency } from '@/composables/useCurrency'
 
 const router = useRouter()
 const invoicesStore = useInvoicesStore()
+const { formatGlobalCurrency: formatCurrency } = useCurrency()
 
 onMounted(async () => {
   await invoicesStore.fetchInvoices()
 })
 
-const formatCurrency = (val: number) => {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val)
-}
+const searchQuery = ref('')
+const filteredInvoices = computed(() => {
+  if (!searchQuery.value) return invoicesStore.invoices
+  const query = searchQuery.value.toLowerCase()
+  return invoicesStore.invoices.filter(i => 
+    i.number.toLowerCase().includes(query) ||
+    i.customers?.name.toLowerCase().includes(query)
+  )
+})
+
+const {
+  currentPage,
+  itemsPerPage,
+  totalItems,
+  paginatedItems
+} = usePagination(filteredInvoices)
 
 const formatDate = (date?: string) => {
   if (!date) return ''
@@ -54,7 +71,7 @@ const handleView = (id?: string) => {
     <div class="flex items-center gap-4">
       <div class="relative flex-1 max-w-sm">
         <Search class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-        <Input placeholder="Search invoices..." class="pl-10" />
+        <Input v-model="searchQuery" placeholder="Search invoices..." class="pl-10" />
       </div>
     </div>
 
@@ -85,7 +102,7 @@ const handleView = (id?: string) => {
             </TableRow>
           </template>
           <template v-else>
-            <TableRow v-for="invoice in invoicesStore.invoices" :key="invoice.id" class="cursor-pointer hover:bg-slate-50" @click="handleView(invoice.id)">
+            <TableRow v-for="invoice in paginatedItems" :key="invoice.id" class="cursor-pointer hover:bg-slate-50" @click="handleView(invoice.id)">
               <TableCell class="font-medium">{{ invoice.number }}</TableCell>
               <TableCell>{{ invoice.customers?.name }}</TableCell>
               <TableCell>{{ formatDate(invoice.issue_date) }}</TableCell>
@@ -110,6 +127,12 @@ const handleView = (id?: string) => {
           </template>
         </TableBody>
       </Table>
+      <DataTablePagination 
+        v-if="!invoicesStore.loading && totalItems > 0"
+        :total-items="totalItems"
+        v-model:current-page="currentPage"
+        v-model:items-per-page="itemsPerPage"
+      />
       </div>
 
       <!-- Mobile Card List -->
@@ -132,7 +155,7 @@ const handleView = (id?: string) => {
         </template>
         <template v-else>
           <div 
-            v-for="invoice in invoicesStore.invoices" 
+            v-for="invoice in paginatedItems" 
             :key="invoice.id" 
             class="p-4 space-y-3 cursor-pointer hover:bg-slate-50 transition-colors"
             @click="handleView(invoice.id)"

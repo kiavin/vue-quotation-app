@@ -14,11 +14,20 @@ import {
   TableRow,
   TableCell,
 } from "@/components/ui/table";
+import DataTablePagination from '@/components/shared/DataTablePagination.vue';
+import { usePagination } from '@/composables/usePagination';
 import type { Organization } from "@/types/organization";
 
 const router = useRouter();
 const organizations = ref<Organization[]>([]);
 const isLoading = ref(true);
+
+const {
+  currentPage,
+  itemsPerPage,
+  totalItems,
+  paginatedItems
+} = usePagination(organizations);
 
 onMounted(async () => {
   const result = await organizationService.getUserOrganizationsWithStats();
@@ -61,7 +70,7 @@ onMounted(async () => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow v-for="org in organizations" :key="org.id">
+            <TableRow v-for="org in paginatedItems" :key="org.id">
               <TableCell>
                 <div class="flex items-center gap-3">
                   <div
@@ -116,6 +125,12 @@ onMounted(async () => {
             </TableRow>
           </TableBody>
         </Table>
+        <DataTablePagination 
+          v-if="!isLoading && totalItems > 0"
+          :total-items="totalItems"
+          v-model:current-page="currentPage"
+          v-model:items-per-page="itemsPerPage"
+        />
       </CardContent>
     </Card>
   </div>

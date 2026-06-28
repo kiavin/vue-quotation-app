@@ -16,6 +16,8 @@ import {
   TableCell 
 } from '@/components/ui/table'
 import { UserPlus, Trash2 } from 'lucide-vue-next'
+import DataTablePagination from '@/components/shared/DataTablePagination.vue'
+import { usePagination } from '@/composables/usePagination'
 
 const props = defineProps<{
   organizationId?: string
@@ -24,6 +26,14 @@ const props = defineProps<{
 const authStore = useAuthStore()
 const members = ref<OrganizationMember[]>([])
 const isLoading = ref(true)
+
+const {
+  currentPage,
+  itemsPerPage,
+  totalItems,
+  paginatedItems
+} = usePagination(members)
+
 
 const inviteForm = ref({
   email: '',
@@ -128,7 +138,7 @@ const handleRoleChange = async (id: string, event: Event) => {
             </TableRow>
           </TableHeader>
           <TableBody>
-            <TableRow v-for="member in members" :key="member.id">
+            <TableRow v-for="member in paginatedItems" :key="member.id">
               <TableCell class="font-medium">{{ member.profiles?.full_name || 'Pending User' }}</TableCell>
               <TableCell>{{ member.profiles?.email || 'N/A' }}</TableCell>
               <TableCell>
@@ -163,6 +173,12 @@ const handleRoleChange = async (id: string, event: Event) => {
             </TableRow>
           </TableBody>
         </Table>
+        <DataTablePagination 
+          v-if="!isLoading && totalItems > 0"
+          :total-items="totalItems"
+          v-model:current-page="currentPage"
+          v-model:items-per-page="itemsPerPage"
+        />
       </div>
 
     </CardContent>
