@@ -81,8 +81,6 @@ export const authService = {
   },
 
   async getSession(retried = false): Promise<Session | null> {
-    console.log('getSession called', retried);
-
     const SESSION_TIMEOUT_MS = 8000;
     try {
       const result = await Promise.race([
@@ -94,7 +92,6 @@ export const authService = {
       ]);
 
       if (result === 'TIMEOUT') {
-        console.warn('getSession timed out');
         if (!retried) {
           // one retry — often clears a transient lock/network stall
           return this.getSession(true);
@@ -103,7 +100,6 @@ export const authService = {
       }
       return result;
     } catch (error) {
-      console.error('Session error:', error);
       return null; // here, null genuinely means "couldn't determine" — caller should NOT treat this as definitive logout
     }
   },
