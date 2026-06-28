@@ -15,6 +15,7 @@ import { useCustomerStore } from "@/stores/customers";
 import { useCatalogStore } from "@/stores/catalog";
 import { useAuthStore } from "@/stores/auth";
 import { useSettingsStore } from "@/stores/settings";
+import { useCurrency } from "@/composables/useCurrency";
 import { type Item } from "@/services/catalogService";
 import { type Quotation } from "@/services/quotationService";
 import { Button } from "@/components/ui/button";
@@ -31,6 +32,7 @@ const customerStore = useCustomerStore();
 const catalogStore = useCatalogStore();
 const authStore = useAuthStore();
 const settingsStore = useSettingsStore();
+const { formatGlobalCurrency: formatCurrency, currencySymbol } = useCurrency();
 
 const isSaving = ref(false);
 const isEditing = ref(false);
@@ -137,12 +139,7 @@ const handleSave = async (status: typeof form.status = "draft") => {
   isSaving.value = false;
 };
 
-const formatCurrency = (val: number) => {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(val);
-};
+
 </script>
 
 <template>
@@ -427,7 +424,7 @@ const formatCurrency = (val: number) => {
                   <div class="relative w-28">
                     <span
                       class="absolute left-2 top-1/2 -translate-y-1/2 text-slate-400"
-                      >$</span
+                      >{{ currencySymbol }}</span
                     >
                     <Input
                       v-model.number="quotationStore.transportCharge"

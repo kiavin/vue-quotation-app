@@ -6,7 +6,8 @@ import { TEMPLATE_VARIANTS, DEFAULT_TEMPLATE, type TemplateVariantId } from '@/t
 import { Button } from '@/components/ui/button'
 import { pdfService } from '@/services/pdfService'
 import { notify } from '@/lib/notify'
-import { Printer, ChevronLeft, Download } from 'lucide-vue-next'
+import { Printer, ChevronLeft, Download, Send } from 'lucide-vue-next'
+import SendEmailModal from '@/components/shared/SendEmailModal.vue'
 
 import type { Invoice } from '@/services/invoiceService'
 
@@ -14,6 +15,13 @@ const route = useRoute()
 const router = useRouter()
 const invoice = ref<(Invoice & { items?: any[], customers?: any }) | null>(null)
 const isLoading = ref(true)
+
+const isEmailModalOpen = ref(false)
+const pdfElementRef = ref<HTMLElement | null>(null)
+const customerEmail = ref('')
+const customerName = ref('')
+const defaultSubject = ref('')
+const defaultMessage = ref('')
 
 // Template Selection Logic
 const selectedVariantId = ref<TemplateVariantId>(DEFAULT_TEMPLATE)
@@ -33,6 +41,12 @@ onMounted(async () => {
     if (route.query.print === 'true') {
       setTimeout(() => {
         pdfService.print()
+      }, 500)
+    }
+    // If the URL has ?send=true, open email modal
+    if (route.query.send === 'true') {
+      setTimeout(() => {
+        openSendEmailModal()
       }, 500)
     }
   } else {
@@ -55,6 +69,30 @@ const handleTemplateChange = (event: Event) => {
 
 const handlePrint = () => {
   pdfService.print()
+}
+
+const openSendEmailModal = () => {
+  if (!invoice.value) return
+  
+  const customer = invoice.value.customers
+  if (!customer || !customer.email) {
+    notify.toast('warning', 'No Email', 'This invoice is assigned to a customer without an email address.')
+    return
+  }
+
+  customerEmail.value = customer.email
+  customerName.value = customer.name
+  defaultSubject.value = `Invoice ${invoice.value.number} from CQIS`
+  defaultMessage.value = `Dear ${customer.name},\n\nPlease find attached the invoice ${invoice.value.number} for your recent event.\n\nYou can proceed with the payment as per the instructions provided in the document.\n\nBest regards,\nThe CQIS Team`
+  isEmailModalOpen.value = true
+}
+
+const handleEmailSent = async () => {
+  if (invoice.value?.id) {
+    await invoiceService.updateStatus(invoice.value.id, 'sent')
+  }
+  isEmailModalOpen.value = false
+  router.push('/invoices')
 }
 </script>
 
@@ -94,13 +132,17 @@ const handlePrint = () => {
             <Download class="w-4 h-4 mr-2" />
             Download PDF
           </Button>
+          <Button size="sm" @click="openSendEmailModal" class="gap-2 bg-[#0F766E] hover:bg-[#0F766E]/90">
+            <Send class="w-4 h-4" />
+            Send to Customer
+          </Button>
         </div>
       </div>
     </div>
 
     <!-- Document Content -->
     <div v-if="!isLoading && invoice" class="py-8 print:py-0 flex justify-center overflow-x-auto">
-      <div class="w-[210mm] min-h-[297mm] bg-white shadow-sm print:shadow-none shrink-0 relative">
+      <div ref="pdfElementRef" class="w-[210mm] min-h-[297mm] bg-white shadow-sm print:shadow-none shrink-0 relative">
         <component 
           :is="activeTemplateComponent"
           :data="(invoice as any)" 
@@ -119,6 +161,18 @@ const handlePrint = () => {
       <Button variant="link" @click="router.push('/invoices')">Return to List</Button>
     </div>
   </div>
+
+  <SendEmailModal
+    :is-open="isEmailModalOpen"
+    :customer-name="customerName"
+    :customer-email="customerEmail"
+    :default-subject="defaultSubject"
+    :default-message="defaultMessage"
+    :filename="`Invoice_${invoice?.number}.pdf`"
+    :pdf-element="pdfElementRef"
+    @close="isEmailModalOpen = false"
+    @sent="handleEmailSent"
+  />
 </template>
 
 <style>

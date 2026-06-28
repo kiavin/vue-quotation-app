@@ -148,11 +148,11 @@ const handleConvertToInvoice = async () => {
           <Button 
             v-if="canMarkAsSent"
             variant="outline" 
-            class="gap-2" 
-            @click="handleStatusChange('sent')" 
+            class="gap-2 bg-[#0F766E]/5 hover:bg-[#0F766E]/10 text-[#0F766E] border-[#0F766E]/20" 
+            @click="router.push(`/quotations/${quotation.id}/print?send=true`)" 
           >
             <Send class="w-4 h-4" />
-            Mark as Sent
+            Send via Email
           </Button>
           
           <Button 
@@ -213,11 +213,11 @@ const handleConvertToInvoice = async () => {
             <Button 
               v-if="canMarkAsSent"
               variant="outline" 
-              class="w-full justify-start gap-2" 
-              @click="handleStatusChange('sent')" 
+              class="w-full justify-start gap-2 bg-[#0F766E]/5 hover:bg-[#0F766E]/10 text-[#0F766E] border-[#0F766E]/20" 
+              @click="router.push(`/quotations/${quotation.id}/print?send=true`)" 
             >
               <Send class="w-4 h-4" />
-              Mark as Sent
+              Send via Email
             </Button>
             
             <Button 

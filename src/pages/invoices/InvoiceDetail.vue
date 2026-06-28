@@ -28,11 +28,13 @@ import {
   TableRow, 
   TableCell 
 } from '@/components/ui/table'
+import { useCurrency } from '@/composables/useCurrency'
 
 const router = useRouter()
 const route = useRoute()
 const invoicesStore = useInvoicesStore()
 const isLoading = ref(true)
+const { formatGlobalCurrency: formatCurrency } = useCurrency()
 
 onMounted(async () => {
   const id = route.params.id as string
@@ -45,9 +47,6 @@ onMounted(async () => {
   isLoading.value = false
 })
 
-const formatCurrency = (val: number) => {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val)
-}
 
 const formatDate = (date?: string) => {
   if (!date) return ''
@@ -78,9 +77,9 @@ const handleStatusChange = async (status: Invoice['status']) => {
         </div>
       </div>
       <div class="flex items-center gap-3">
-        <Button variant="outline" class="gap-2" @click="handleStatusChange('sent')" v-if="invoicesStore.currentInvoice.status === 'draft'">
+        <Button variant="outline" class="gap-2 bg-[#0F766E]/5 hover:bg-[#0F766E]/10 text-[#0F766E] border-[#0F766E]/20" @click="router.push(`/invoices/${invoicesStore.currentInvoice.id}/print?send=true`)" v-if="invoicesStore.currentInvoice.status === 'draft'">
           <Send class="w-4 h-4" />
-          Mark as Sent
+          Send via Email
         </Button>
         <Button variant="outline" class="gap-2 text-green-600 hover:text-green-700 hover:bg-green-50" @click="handleStatusChange('paid')" v-if="invoicesStore.currentInvoice.status === 'sent' || invoicesStore.currentInvoice.status === 'overdue'">
           <CheckCircle class="w-4 h-4" />

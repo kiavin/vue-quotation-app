@@ -45,6 +45,12 @@ onMounted(async () => {
         pdfService.print()
       }, 500)
     }
+    // If the URL has ?send=true, open email modal
+    if (route.query.send === 'true') {
+      setTimeout(() => {
+        openSendEmailModal()
+      }, 500)
+    }
   } else {
     notify.handleResponse(result)
   }
@@ -80,6 +86,14 @@ const openSendEmailModal = () => {
   defaultSubject.value = `Quotation ${quotation.value.number} from CQIS`
   defaultMessage.value = `Dear ${customer.name},\n\nPlease find attached the quotation ${quotation.value.number} for your upcoming event.\n\nIf you have any questions or need adjustments, feel free to reply to this email.\n\nBest regards,\nThe CQIS Team`
   isEmailModalOpen.value = true
+}
+
+const handleEmailSent = async () => {
+  if (quotation.value?.id) {
+    await quotationService.updateStatus(quotation.value.id, 'sent')
+  }
+  isEmailModalOpen.value = false
+  router.push('/quotations')
 }
 </script>
 
@@ -158,7 +172,7 @@ const openSendEmailModal = () => {
     :filename="`Quotation_${quotation?.number}.pdf`"
     :pdf-element="pdfElementRef"
     @close="isEmailModalOpen = false"
-    @sent="isEmailModalOpen = false; router.push('/quotations')"
+    @sent="handleEmailSent"
   />
 </template>
 
