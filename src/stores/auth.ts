@@ -30,12 +30,9 @@ export const useAuthStore = defineStore('auth', () => {
   async function setSession(newSession: Session | null) {
     session.value = newSession;
     user.value = newSession?.user ?? null;
-    console.log('setSession', newSession);
 
     if (newSession?.user) {
-      console.log('Fetching profile and organization');
-      const res = await fetchProfileAndOrganization();
-      console.log('Profile and organization fetched', res);
+      await fetchProfileAndOrganization();
     } else {
       profile.value = null;
       organization.value = null;
@@ -43,8 +40,6 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   async function fetchProfileAndOrganization() {
-    console.log('fetchProfileAndOrganization started for user:', user.value?.id);
-
     if (!user.value) return;
     
     // We explicitly wrap the Supabase DB calls in a 1ms timeout.
@@ -53,15 +48,11 @@ export const useAuthStore = defineStore('auth', () => {
     // that cause implicit getSession() calls (made by supabase.from) to deadlock.
     await new Promise(resolve => setTimeout(resolve, 1));
     
-    console.log('Executing profiles query...');
-
     let { data: profileData, error: profileError } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', user.value.id)
       .maybeSingle();
-    console.log('profileData', profileData);
-    console.log('profileError', profileError);
     // Handle missing profile for OAuth sign-ins (if database trigger hasn't fired yet)
     if (!profileData && !profileError) {
       console.warn("Profile not found. Attempting to create a default profile.");
@@ -107,17 +98,6 @@ export const useAuthStore = defineStore('auth', () => {
     } else {
       platformRoles.value = [];
     }
-
-    // Debugging: Log all about the user who just logged in
-    console.log('[Auth Store] User Authentication State:', {
-      user: user.value,
-      profile: profile.value,
-      organization: organization.value,
-      organizationId: organizationId.value,
-      platformRoles: platformRoles.value,
-      isPlatformAdmin: isPlatformAdmin.value,
-      isImpersonating: isImpersonating.value
-    });
   }
 
   async function startImpersonating(orgId: string) {
