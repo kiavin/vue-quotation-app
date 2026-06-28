@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { NumberStepper } from '@/components/ui/number-stepper'
 import { useCatalogStore } from '@/stores/catalog'
 import type { Item } from '@/services/catalogService'
+import { useCurrency } from '@/composables/useCurrency'
 
 const props = defineProps<{
   initialValues?: Partial<Item>
@@ -18,6 +19,7 @@ const emit = defineEmits<{
 }>()
 
 const catalogStore = useCatalogStore()
+const { currencySymbol } = useCurrency()
 
 const form = reactive({
   name: props.initialValues?.name || '',
@@ -67,7 +69,7 @@ const handleSubmit = () => {
       </div>
 
       <div class="space-y-2">
-        <Label for="price">Price (USD)</Label>
+        <Label for="price">Price ({{ currencySymbol }})</Label>
         <NumberStepper id="price" v-model="form.price" :min="0" :step="0.5" />
       </div>
 

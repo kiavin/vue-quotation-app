@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Edit, Trash2 } from 'lucide-vue-next'
 import type { Item } from '@/services/catalogService'
+import { useCurrency } from '@/composables/useCurrency'
 
 defineProps<{
   items: (Item & { categories: { name: string } | null })[]
@@ -23,9 +24,7 @@ const emit = defineEmits<{
   (e: 'delete', item: Item): void
 }>()
 
-const formatCurrency = (val: number) => {
-  return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val)
-}
+const { formatGlobalCurrency: formatCurrency } = useCurrency()
 </script>
 
 <template>

@@ -9,6 +9,8 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { Loader2 } from 'lucide-vue-next'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { CURRENCIES } from '@/utils/currencies'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -59,7 +61,18 @@ const handleSetup = async () => {
           </div>
           <div class="space-y-2">
             <Label for="currency">Default Currency</Label>
-            <Input id="currency" v-model="form.currency" required placeholder="USD" />
+            <Select v-model="form.currency" required>
+              <SelectTrigger id="currency">
+                <SelectValue placeholder="Select a currency" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem v-for="c in CURRENCIES" :key="c.code" :value="c.code">
+                    {{ c.code }} - {{ c.name }} ({{ c.symbol }})
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
           </div>
           <Button type="submit" class="w-full mt-6" :disabled="isLoading">
             <Loader2 v-if="isLoading" class="w-4 h-4 mr-2 animate-spin" />

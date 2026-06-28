@@ -2,11 +2,12 @@
 import { ref, onMounted } from 'vue'
 import { useSettingsStore } from '@/stores/settings'
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card'
-import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Button } from '@/components/ui/button'
 import { NumberStepper } from '@/components/ui/number-stepper'
 import { Loader2, Save } from 'lucide-vue-next'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { CURRENCIES } from '@/utils/currencies'
 
 const settingsStore = useSettingsStore()
 const isSaving = ref(false)
@@ -64,7 +65,18 @@ async function handleSave() {
 
           <div class="grid gap-2">
             <Label for="currency">Currency Code</Label>
-            <Input id="currency" v-model="form.currency" placeholder="USD, EUR, GBP..." />
+            <Select v-model="form.currency">
+              <SelectTrigger id="currency">
+                <SelectValue placeholder="Select a currency" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectGroup>
+                  <SelectItem v-for="c in CURRENCIES" :key="c.code" :value="c.code">
+                    {{ c.code }} - {{ c.name }} ({{ c.symbol }})
+                  </SelectItem>
+                </SelectGroup>
+              </SelectContent>
+            </Select>
             <p class="text-xs text-muted-foreground">Standard ISO currency code (e.g., USD for US Dollars).</p>
           </div>
         </CardContent>

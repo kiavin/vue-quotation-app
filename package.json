@@ -9,7 +9,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@lucide/vue": "^1.21.0",
+    "@lucide/vue": "^1.22.0",
     "@supabase/supabase-js": "^2.106.2",
     "@tanstack/vue-table": "^8.21.3",
     "@vercel/analytics": "^2.0.1",
@@ -23,7 +23,7 @@
     "pinia": "^3.0.4",
     "puppeteer": "^25.1.0",
     "radix-vue": "^1.9.17",
-    "reka-ui": "^2.10.0",
+    "reka-ui": "^2.10.1",
     "sweetalert2": "^11.26.25",
     "tailwind-merge": "^3.6.0",
     "tailwindcss-animate": "^1.0.7",
