@@ -7,11 +7,15 @@ import { authService } from './services/authService'
 
 import './assets/css/main.css'
 
+import { createHead } from '@vueuse/head'
+
 const app = createApp(App)
 const pinia = createPinia()
+const head = createHead()
 
 app.use(pinia)
 app.use(router)
+app.use(head)
 
 // Mount the app immediately — don't block rendering on auth.
 // The router guard handles redirects once auth resolves.
