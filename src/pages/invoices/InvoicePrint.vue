@@ -17,7 +17,6 @@ const invoice = ref<(Invoice & { items?: any[], customers?: any }) | null>(null)
 const isLoading = ref(true)
 
 const isEmailModalOpen = ref(false)
-const pdfElementRef = ref<HTMLElement | null>(null)
 const customerEmail = ref('')
 const customerName = ref('')
 const defaultSubject = ref('')
@@ -142,7 +141,7 @@ const handleEmailSent = async () => {
 
     <!-- Document Content -->
     <div v-if="!isLoading && invoice" class="py-8 print:py-0 flex justify-center overflow-x-auto">
-      <div ref="pdfElementRef" class="w-[210mm] min-h-[297mm] bg-white shadow-sm print:shadow-none shrink-0 relative">
+      <div class="w-[210mm] min-h-[297mm] bg-white shadow-sm print:shadow-none shrink-0 relative">
         <component 
           :is="activeTemplateComponent"
           :data="(invoice as any)" 
@@ -169,7 +168,8 @@ const handleEmailSent = async () => {
     :default-subject="defaultSubject"
     :default-message="defaultMessage"
     :filename="`Invoice_${invoice?.number}.pdf`"
-    :pdf-element="pdfElementRef"
+    :document-id="invoice?.id || ''"
+    document-type="invoice"
     @close="isEmailModalOpen = false"
     @sent="handleEmailSent"
   />

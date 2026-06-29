@@ -17,7 +17,6 @@ const quotation = ref<Quotation | null>(null)
 const isLoading = ref(true)
 
 const isEmailModalOpen = ref(false)
-const pdfElementRef = ref<HTMLElement | null>(null)
 const customerEmail = ref('')
 const customerName = ref('')
 const defaultSubject = ref('')
@@ -143,7 +142,7 @@ const handleEmailSent = async () => {
 
     <!-- Document Content -->
     <div v-if="!isLoading && quotation" class="py-8 print:py-0 flex justify-center overflow-x-auto">
-      <div ref="pdfElementRef" class="w-[210mm] min-h-[297mm] bg-white shadow-sm print:shadow-none shrink-0 relative">
+      <div class="w-[210mm] min-h-[297mm] bg-white shadow-sm print:shadow-none shrink-0 relative">
         <component 
           :is="activeTemplateComponent"
           :data="(quotation as any)" 
@@ -170,7 +169,8 @@ const handleEmailSent = async () => {
     :default-subject="defaultSubject"
     :default-message="defaultMessage"
     :filename="`Quotation_${quotation?.number}.pdf`"
-    :pdf-element="pdfElementRef"
+    :document-id="quotation?.id || ''"
+    document-type="quotation"
     @close="isEmailModalOpen = false"
     @sent="handleEmailSent"
   />
