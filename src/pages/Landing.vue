@@ -12,8 +12,66 @@ import {
   Send, 
   Utensils, 
   XCircle,
-  Loader2
+  Loader2,
+  ChevronDown
 } from 'lucide-vue-next'
+import { useSeo } from '@/composables/useSeo'
+
+useSeo({
+  title: 'Professional Catering Quotation Software',
+  description: 'CQIS is the ultimate catering quotation and invoice generator. Streamline your event catering business, create branded estimates in minutes, and get paid faster.',
+  schema: {
+    "@context": "https://schema.org",
+    "@graph": [
+      {
+        "@type": "SoftwareApplication",
+        "name": "CQIS",
+        "applicationCategory": "BusinessApplication",
+        "operatingSystem": "Web",
+        "offers": {
+          "@type": "Offer",
+          "price": "0",
+          "priceCurrency": "USD"
+        }
+      },
+      {
+        "@type": "Organization",
+        "name": "CQIS",
+        "url": "https://cqis.urbanloos.com/",
+        "logo": "https://cqis.urbanloos.com/logo.png"
+      },
+      {
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "How do I create a catering quotation?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "With CQIS, you simply select items from your pre-built catalog, adjust quantities for your guest count, and our software instantly generates a branded quotation."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Can I generate PDF catering invoices?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Yes! You can instantly convert any approved catering quotation into a professional PDF invoice with one click."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "Is this catering software free to use?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Currently, CQIS is completely free to use for all catering businesses."
+            }
+          }
+        ]
+      }
+    ]
+  }
+})
 
 const router = useRouter()
 const isScrolled = ref(false)
@@ -64,9 +122,13 @@ onUnmounted(() => {
 
 <template>
   <div class="min-h-screen bg-[#F8F7F4] text-[#1B1B1B] font-body dark:bg-[#121212] dark:text-[#F8F7F4] selection:bg-[#C57B57] selection:text-white transition-colors duration-300 overflow-x-hidden">
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-[#C57B57] text-white px-4 py-2 z-[60] rounded-md shadow-lg">
+      Skip to content
+    </a>
     
     <!-- Navigation -->
     <nav 
+      aria-label="Main navigation"
       :class="[
         'fixed top-0 left-0 right-0 z-50 transition-all duration-300 border-b border-transparent px-6 py-4 lg:px-12',
         isScrolled ? 'bg-[#F8F7F4]/80 dark:bg-[#121212]/80 backdrop-blur-md border-[#E8D8C4] dark:border-gray-800 shadow-sm py-3' : 'bg-transparent'
@@ -109,8 +171,9 @@ onUnmounted(() => {
       </div>
     </nav>
 
-    <!-- Hero Section -->
-    <header class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 px-6 lg:px-12 max-w-7xl mx-auto flex flex-col-reverse lg:flex-row items-center gap-16">
+    <main id="main-content">
+      <!-- Hero Section -->
+      <header class="relative pt-32 pb-20 lg:pt-48 lg:pb-32 px-6 lg:px-12 max-w-7xl mx-auto flex flex-col-reverse lg:flex-row items-center gap-16">
       
       <!-- Ambient Background -->
       <div class="absolute inset-0 overflow-hidden pointer-events-none -z-10">
@@ -125,10 +188,10 @@ onUnmounted(() => {
           Built for Hospitality
         </div>
         <h1 class="font-heading text-5xl lg:text-7xl font-bold leading-[1.1] mb-6 text-[#1B1B1B] dark:text-[#F8F7F4]">
-          From Event Inquiry to <span class="text-[#C57B57] italic">Professional Quote</span> in Minutes.
+          Professional Catering Quotation Software — <span class="text-[#C57B57] italic">From Inquiry to Branded Quote in Minutes.</span>
         </h1>
         <p class="text-lg text-[#6B7280] dark:text-gray-300 mb-8 max-w-lg leading-relaxed">
-          Create stunning catering quotations, generate PDFs instantly, and send invoices to clients without drowning in spreadsheets and Word documents.
+          Create stunning catering quotations, generate professional PDF estimates instantly, and send invoices to clients without drowning in spreadsheets and Word documents.
         </p>
         
         <div class="flex flex-col sm:flex-row items-center gap-4 mb-12 w-full sm:w-auto">
@@ -250,7 +313,7 @@ onUnmounted(() => {
         <!-- Text Content -->
         <div class="reveal">
           <h2 class="font-heading text-4xl lg:text-5xl font-bold mb-8 text-[#1B1B1B] dark:text-white leading-tight">
-            Catering paperwork shouldn't feel like event planning chaos.
+            Why Catering Businesses Struggle with Quotations and Invoices
           </h2>
           <ul class="space-y-5">
             <li class="flex items-start gap-4">
@@ -282,8 +345,8 @@ onUnmounted(() => {
     <section id="how-it-works" class="py-24 bg-[#F8F7F4] dark:bg-[#121212] relative overflow-hidden">
       <div class="max-w-7xl mx-auto px-6 lg:px-12">
         <div class="text-center max-w-2xl mx-auto mb-16 reveal">
-          <h2 class="font-heading text-4xl font-bold mb-4 text-[#1B1B1B] dark:text-white">An Elegant Workflow</h2>
-          <p class="text-[#6B7280] dark:text-gray-400 text-lg">Four simple steps from first contact to confirmed booking.</p>
+          <h2 class="font-heading text-4xl font-bold mb-4 text-[#1B1B1B] dark:text-white">How CQIS Streamlines Your Catering Quotation Workflow</h2>
+          <p class="text-[#6B7280] dark:text-gray-400 text-lg">Four simple steps from first contact to confirmed event booking.</p>
         </div>
 
         <div class="relative grid md:grid-cols-4 gap-8 lg:gap-12 text-center">
@@ -345,8 +408,8 @@ onUnmounted(() => {
             <div class="w-12 h-12 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-[#E8D8C4] dark:border-gray-700 flex items-center justify-center mb-6 text-[#C57B57] group-hover:scale-110 transition-transform">
               <Utensils class="w-6 h-6" />
             </div>
-            <h3 class="font-heading font-bold text-xl mb-3 text-[#1B1B1B] dark:text-white">Professional Quotations</h3>
-            <p class="text-[#6B7280] dark:text-gray-400 leading-relaxed">Beautiful event quotations with structured pricing breakdowns that instill trust in your clients.</p>
+            <h3 class="font-heading font-bold text-xl mb-3 text-[#1B1B1B] dark:text-white">Professional Quotation Builder</h3>
+            <p class="text-[#6B7280] dark:text-gray-400 leading-relaxed">Create beautiful event catering estimates with structured pricing breakdowns that instill trust in your clients. Our catering quotation software makes complex pricing simple and transparent.</p>
           </div>
 
           <!-- Feature 2 -->
@@ -354,8 +417,8 @@ onUnmounted(() => {
             <div class="w-12 h-12 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-[#E8D8C4] dark:border-gray-700 flex items-center justify-center mb-6 text-[#C57B57] group-hover:scale-110 transition-transform">
               <FileText class="w-6 h-6" />
             </div>
-            <h3 class="font-heading font-bold text-xl mb-3 text-[#1B1B1B] dark:text-white">Instant PDF Generation</h3>
-            <p class="text-[#6B7280] dark:text-gray-400 leading-relaxed">One click creates polished, historically accurate PDF documents with your branding embedded.</p>
+            <h3 class="font-heading font-bold text-xl mb-3 text-[#1B1B1B] dark:text-white">Instant PDF Invoice Generator</h3>
+            <p class="text-[#6B7280] dark:text-gray-400 leading-relaxed">With a single click, convert your web quote into a polished, historically accurate PDF document. Never worry about formatting issues or broken layouts again with our catering invoice generator.</p>
           </div>
 
           <!-- Feature 3 -->
@@ -363,8 +426,8 @@ onUnmounted(() => {
             <div class="w-12 h-12 bg-white dark:bg-gray-900 rounded-xl shadow-sm border border-[#E8D8C4] dark:border-gray-700 flex items-center justify-center mb-6 text-[#C57B57] group-hover:scale-110 transition-transform">
               <Mail class="w-6 h-6" />
             </div>
-            <h3 class="font-heading font-bold text-xl mb-3 text-[#1B1B1B] dark:text-white">Email Integration</h3>
-            <p class="text-[#6B7280] dark:text-gray-400 leading-relaxed">Send quotes directly from the platform. No more saving files to your desktop and attaching them manually.</p>
+            <h3 class="font-heading font-bold text-xl mb-3 text-[#1B1B1B] dark:text-white">Secure Public Email Links</h3>
+            <p class="text-[#6B7280] dark:text-gray-400 leading-relaxed">Send catering quotes directly from the platform via secure, unguessable public links. No more saving files to your desktop and attaching them manually to generic emails.</p>
           </div>
 
           <!-- Feature 4 -->
@@ -463,45 +526,66 @@ onUnmounted(() => {
       </div>
     </section>
 
-    <!-- Testimonials Section -->
-    <section id="testimonials" class="py-24 bg-white dark:bg-[#1A1A1A]">
-      <div class="max-w-7xl mx-auto px-6 lg:px-12">
+    <!-- FAQ Section -->
+    <section id="faq" class="py-24 bg-white dark:bg-[#1A1A1A]">
+      <div class="max-w-4xl mx-auto px-6 lg:px-12">
         <div class="text-center mb-16 reveal">
-          <h2 class="font-heading text-4xl font-bold mb-4 text-[#1B1B1B] dark:text-white">Trusted by Hospitality Professionals</h2>
+          <h2 class="font-heading text-4xl font-bold mb-4 text-[#1B1B1B] dark:text-white">Frequently Asked Questions</h2>
+          <p class="text-[#6B7280] dark:text-gray-400 text-lg">Everything you need to know about our catering software.</p>
         </div>
 
-        <div class="grid md:grid-cols-2 gap-8 lg:gap-12">
-          <div class="bg-[#F8F7F4] dark:bg-gray-900 p-10 rounded-3xl relative reveal">
-            <div class="text-[#C57B57] font-heading text-6xl absolute top-6 left-6 opacity-20">"</div>
-            <p class="text-lg text-[#1B1B1B] dark:text-gray-200 relative z-10 mb-8 italic font-heading">
-              "Creating quotations used to take me nearly an hour. With CQIS, I prepare and send them before I even leave the venue."
-            </p>
-            <div class="flex items-center gap-4 relative z-10">
-              <div class="w-12 h-12 bg-gray-300 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold">
-                SM
-              </div>
-              <div>
-                <p class="font-bold text-[#1B1B1B] dark:text-white">Sarah M.</p>
-                <p class="text-sm text-[#6B7280] dark:text-gray-400">Wedding Caterer</p>
-              </div>
+        <div class="space-y-4 reveal">
+          <!-- FAQ Item 1 -->
+          <details class="group bg-[#F8F7F4] dark:bg-gray-900 rounded-2xl border border-transparent open:border-[#E8D8C4] dark:open:border-gray-700 transition-colors" open>
+            <summary class="flex items-center justify-between p-6 cursor-pointer list-none font-bold text-[#1B1B1B] dark:text-white">
+              <span>How do I create a catering quotation?</span>
+              <span class="transition group-open:rotate-180">
+                <ChevronDown class="w-5 h-5 text-[#6B7280]" />
+              </span>
+            </summary>
+            <div class="px-6 pb-6 text-[#6B7280] dark:text-gray-400 leading-relaxed">
+              With CQIS, you simply select items from your pre-built catalog, adjust quantities for your guest count, and our software instantly generates a branded quotation.
             </div>
-          </div>
+          </details>
 
-          <div class="bg-[#F8F7F4] dark:bg-gray-900 p-10 rounded-3xl relative reveal delay-100">
-            <div class="text-[#C57B57] font-heading text-6xl absolute top-6 left-6 opacity-20">"</div>
-            <p class="text-lg text-[#1B1B1B] dark:text-gray-200 relative z-10 mb-8 italic font-heading">
-              "The PDFs look incredibly professional. Clients assume we invested in expensive enterprise software to generate these documents."
-            </p>
-            <div class="flex items-center gap-4 relative z-10">
-              <div class="w-12 h-12 bg-gray-300 dark:bg-gray-700 rounded-full flex items-center justify-center text-gray-500 dark:text-gray-400 font-bold">
-                JK
-              </div>
-              <div>
-                <p class="font-bold text-[#1B1B1B] dark:text-white">James K.</p>
-                <p class="text-sm text-[#6B7280] dark:text-gray-400">Corporate Catering Manager</p>
-              </div>
+          <!-- FAQ Item 2 -->
+          <details class="group bg-[#F8F7F4] dark:bg-gray-900 rounded-2xl border border-transparent open:border-[#E8D8C4] dark:open:border-gray-700 transition-colors">
+            <summary class="flex items-center justify-between p-6 cursor-pointer list-none font-bold text-[#1B1B1B] dark:text-white">
+              <span>Can I generate PDF catering invoices?</span>
+              <span class="transition group-open:rotate-180">
+                <ChevronDown class="w-5 h-5 text-[#6B7280]" />
+              </span>
+            </summary>
+            <div class="px-6 pb-6 text-[#6B7280] dark:text-gray-400 leading-relaxed">
+              Yes! You can instantly convert any approved catering quotation into a professional PDF invoice with one click.
             </div>
-          </div>
+          </details>
+
+          <!-- FAQ Item 3 -->
+          <details class="group bg-[#F8F7F4] dark:bg-gray-900 rounded-2xl border border-transparent open:border-[#E8D8C4] dark:open:border-gray-700 transition-colors">
+            <summary class="flex items-center justify-between p-6 cursor-pointer list-none font-bold text-[#1B1B1B] dark:text-white">
+              <span>Is this catering software free to use?</span>
+              <span class="transition group-open:rotate-180">
+                <ChevronDown class="w-5 h-5 text-[#6B7280]" />
+              </span>
+            </summary>
+            <div class="px-6 pb-6 text-[#6B7280] dark:text-gray-400 leading-relaxed">
+              Currently, CQIS is completely free to use for all catering businesses. We aim to support the community by providing top-tier tools without barriers.
+            </div>
+          </details>
+
+          <!-- FAQ Item 4 -->
+          <details class="group bg-[#F8F7F4] dark:bg-gray-900 rounded-2xl border border-transparent open:border-[#E8D8C4] dark:open:border-gray-700 transition-colors">
+            <summary class="flex items-center justify-between p-6 cursor-pointer list-none font-bold text-[#1B1B1B] dark:text-white">
+              <span>Can I customize my branding on the documents?</span>
+              <span class="transition group-open:rotate-180">
+                <ChevronDown class="w-5 h-5 text-[#6B7280]" />
+              </span>
+            </summary>
+            <div class="px-6 pb-6 text-[#6B7280] dark:text-gray-400 leading-relaxed">
+              Absolutely. You can upload your logo, set your brand colors, and add contact information. This branding is snapshotted into every generated PDF so it always looks professional.
+            </div>
+          </details>
         </div>
       </div>
     </section>
@@ -552,7 +636,8 @@ onUnmounted(() => {
         
         <div class="flex flex-wrap justify-center gap-8 text-sm font-medium">
           <a href="#features" class="hover:text-white transition-colors">Features</a>
-          <a href="#pricing" class="hover:text-white transition-colors">Pricing</a>
+          <a href="#how-it-works" class="hover:text-white transition-colors">How It Works</a>
+          <a href="#faq" class="hover:text-white transition-colors">FAQ</a>
           <a href="#" class="hover:text-white transition-colors">Privacy</a>
           <a href="#" class="hover:text-white transition-colors">Terms</a>
           <a href="#" class="hover:text-white transition-colors">Contact</a>
@@ -562,6 +647,7 @@ onUnmounted(() => {
         &copy; {{ new Date().getFullYear() }} CQIS. All rights reserved.
       </div>
     </footer>
+  </main>
   </div>
 </template>
 
