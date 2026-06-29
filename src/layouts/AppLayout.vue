@@ -79,6 +79,9 @@ const handleLogout = async () => {
 
 <template>
   <div class="flex h-screen bg-slate-50 relative overflow-hidden">
+    <a href="#main-content" class="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 bg-primary text-white px-4 py-2 z-[60] rounded-md shadow-lg">
+      Skip to content
+    </a>
     <!-- Mobile Overlay -->
     <div 
       v-if="isMobile && isMobileOpen" 
@@ -88,6 +91,7 @@ const handleLogout = async () => {
 
     <!-- Sidebar -->
     <aside
+      aria-label="Sidebar Navigation"
       :class="cn(
         'fixed inset-y-0 left-0 z-50 transform bg-white border-r transition-all duration-300 ease-in-out lg:relative',
         isMobileOpen ? 'translate-x-0 w-64' : '-translate-x-full lg:translate-x-0',
@@ -125,7 +129,7 @@ const handleLogout = async () => {
         </div>
 
         <!-- Navigation -->
-        <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto overflow-x-hidden">
+        <nav aria-label="Main Menu" class="flex-1 px-3 py-4 space-y-1 overflow-y-auto overflow-x-hidden">
           <router-link
             v-for="item in navigation"
             :key="item.name"
@@ -188,7 +192,7 @@ const handleLogout = async () => {
       <!-- Topbar -->
       <header class="h-16 bg-white border-b flex items-center justify-between px-4 lg:px-8 flex-shrink-0">
         <div class="flex items-center gap-4">
-          <Button variant="ghost" size="icon" class="lg:hidden" @click="toggleMobileMenu">
+          <Button variant="ghost" size="icon" class="lg:hidden" @click="toggleMobileMenu" aria-label="Toggle mobile menu">
             <Menu class="w-5 h-5" />
           </Button>
           <h1 class="text-lg font-semibold text-slate-900">
@@ -211,7 +215,7 @@ const handleLogout = async () => {
       </header>
 
       <!-- Page Content -->
-      <main class="flex-1 overflow-y-auto p-4 lg:p-8">
+      <main id="main-content" class="flex-1 overflow-y-auto p-4 lg:p-8">
         <div class="max-w-7xl mx-auto h-full">
           <RouterView />
         </div>
