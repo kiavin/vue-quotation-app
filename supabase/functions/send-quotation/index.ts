@@ -14,7 +14,25 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { to, subject, message, attachmentBase64, filename } = await req.json()
+    const { to, subject, message, action_url, filename } = await req.json()
+
+    const htmlBody = `
+      <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; color: #333;">
+        <h2 style="color: #0F766E;">${subject}</h2>
+        <div style="margin-bottom: 24px; line-height: 1.6; white-space: pre-wrap;">
+          ${message || 'Please find the link to your document below.'}
+        </div>
+        <div style="text-align: center; margin: 32px 0;">
+          <a href="${action_url}" style="background-color: #0F766E; color: white; padding: 12px 24px; text-decoration: none; border-radius: 6px; font-weight: bold; display: inline-block;">
+            View Document
+          </a>
+        </div>
+        <p style="font-size: 12px; color: #666; text-align: center;">
+          If the button doesn't work, you can copy and paste this link into your browser:<br>
+          <a href="${action_url}" style="color: #0EA5E9;">${action_url}</a>
+        </p>
+      </div>
+    `
 
     // Send email using Resend API
     const res = await fetch('https://api.resend.com/emails', {
@@ -24,16 +42,10 @@ Deno.serve(async (req) => {
         Authorization: `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: `CQIS Quotations <${RESEND_FROM_EMAIL}>`,
+        from: `CQIS System <${RESEND_FROM_EMAIL}>`,
         to: [to],
         subject: subject,
-        text: message,
-        attachments: [
-          {
-            filename: filename,
-            content: attachmentBase64,
-          },
-        ],
+        html: htmlBody,
       }),
     })
 
