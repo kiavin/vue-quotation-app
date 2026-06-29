@@ -7,6 +7,12 @@ import { Button } from '@/components/ui/button'
 import { Printer, Download } from 'lucide-vue-next'
 import { pdfService } from '@/services/pdfService'
 import { notify } from '@/lib/notify'
+import { useSeo } from '@/composables/useSeo'
+
+useSeo({
+  title: 'Quotation Preview',
+  noindex: true
+})
 
 const route = useRoute()
 const documentData = ref<any>(null)
