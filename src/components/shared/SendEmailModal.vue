@@ -1,11 +1,10 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { X, Send, Eye } from 'lucide-vue-next'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { notify } from '@/lib/notify'
-import html2pdf from 'html2pdf.js'
 
 const props = defineProps<{
   isOpen: boolean
@@ -14,7 +13,8 @@ const props = defineProps<{
   defaultSubject: string
   defaultMessage: string
   filename: string
-  pdfElement?: HTMLElement | null
+  documentId: string
+  documentType: 'quotation' | 'invoice'
 }>()
 
 const emit = defineEmits<{
@@ -26,7 +26,6 @@ const emailTo = ref('')
 const subject = ref('')
 const message = ref('')
 const isSending = ref(false)
-const isPreviewing = ref(false)
 
 watch(() => props.isOpen, (newVal) => {
   if (newVal) {
@@ -36,51 +35,24 @@ watch(() => props.isOpen, (newVal) => {
   }
 })
 
-const handlePreview = async () => {
-  if (!props.pdfElement) {
-    notify.toast('error', 'Preview Error', 'Document element not found for PDF preview.')
-    return
-  }
-  
-  isPreviewing.value = true
-  try {
-    const opt = {
-      margin: 0,
-      filename: props.filename,
-      image: { type: 'jpeg' as const, quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, logging: false },
-      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' as const }
-    }
-    const pdfBlobUrl = await html2pdf().set(opt).from(props.pdfElement).output('bloburl')
-    window.open(pdfBlobUrl, '_blank')
-  } catch (error: any) {
-    console.error('PDF preview error:', error)
-    notify.toast('error', 'Preview Failed', `Failed to preview PDF: ${error.message}`)
-  } finally {
-    isPreviewing.value = false
-  }
+const actionUrl = computed(() => {
+  const path = props.documentType === 'quotation' ? 'quotations' : 'invoices'
+  return `${window.location.origin}/public/${path}/${props.documentId}`
+})
+
+const handlePreview = () => {
+  // Opening the native print dialog is the most accurate preview of the final PDF
+  window.print()
 }
 
 const handleSend = async () => {
-  if (!props.pdfElement) {
-    notify.toast('error', 'Send Error', 'Document element not found for PDF generation.')
+  if (!props.documentId) {
+    notify.toast('error', 'Send Error', 'Document ID not provided.')
     return
   }
   
   isSending.value = true
   try {
-    // Generate the PDF from the provided HTML Element
-    const opt = {
-      margin: 0,
-      filename: props.filename,
-      image: { type: 'jpeg' as const, quality: 0.98 },
-      html2canvas: { scale: 2, useCORS: true, logging: false },
-      jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' as const }
-    }
-    
-    const pdfBase64DataUri = await html2pdf().set(opt).from(props.pdfElement).output('datauristring')
-    const attachmentBase64 = pdfBase64DataUri.split('base64,')[1]
-
     // Send to Supabase Edge Function
     const emailResponse = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/send-quotation`, {
       method: 'POST',
@@ -92,7 +64,7 @@ const handleSend = async () => {
         to: emailTo.value,
         subject: subject.value,
         message: message.value,
-        attachmentBase64,
+        action_url: actionUrl.value,
         filename: props.filename
       })
     })
@@ -103,7 +75,7 @@ const handleSend = async () => {
     }
     
     emit('sent')
-    notify.toast('success', 'Email Sent', `Quotation successfully sent to ${emailTo.value}`)
+    notify.toast('success', 'Email Sent', `Secure link successfully sent to ${emailTo.value}`)
   } catch (error: any) {
     console.error('Email sending error:', error)
     notify.toast('error', 'Send Failed', `Failed to send email: ${error.message}`)
@@ -141,12 +113,12 @@ const handleSend = async () => {
         </div>
         <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-900/50 p-3 rounded-md text-sm flex items-center justify-between gap-4">
           <div class="flex items-start gap-2 text-blue-700 dark:text-blue-400">
-            <span class="text-lg leading-none mt-0.5">📎</span>
-            <p>A PDF copy of <strong>{{ filename }}</strong> will be generated and attached.</p>
+            <span class="text-lg leading-none mt-0.5">🔗</span>
+            <p>A secure public link to <strong>{{ filename }}</strong> will be included in the email.</p>
           </div>
-          <Button variant="ghost" size="sm" class="shrink-0 text-blue-600 hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/40 h-8 px-3" @click="handlePreview" :disabled="isPreviewing || isSending">
+          <Button variant="ghost" size="sm" class="shrink-0 text-blue-600 hover:text-blue-700 hover:bg-blue-100 dark:hover:bg-blue-900/40 h-8 px-3" @click="handlePreview" :disabled="isSending">
             <Eye class="w-4 h-4 mr-1.5" />
-            {{ isPreviewing ? 'Loading...' : 'Preview' }}
+            Preview PDF
           </Button>
         </div>
       </div>
