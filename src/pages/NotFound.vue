@@ -1,6 +1,12 @@
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
 import { Utensils, ArrowLeft, Home } from 'lucide-vue-next'
+import { useSeo } from '@/composables/useSeo'
+
+useSeo({
+  title: 'Page Not Found',
+  noindex: true
+})
 
 const router = useRouter()
 </script>
