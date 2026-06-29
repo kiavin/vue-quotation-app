@@ -5,6 +5,12 @@ import { authService } from '@/services/authService'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
 import { notify } from '@/lib/notify'
+import { useSeo } from '@/composables/useSeo'
+
+useSeo({
+  title: 'Sign In',
+  noindex: true
+})
 
 const router = useRouter()
 const email = ref('')
