@@ -901,6 +901,8 @@ export type Database = {
         Returns: string
       }
       get_next_invoice_number: { Args: { org_id: string }; Returns: string }
+      get_public_invoice: { Args: { doc_id: string }; Returns: Json }
+      get_public_quotation: { Args: { doc_id: string }; Returns: Json }
       is_org_admin: { Args: { org_id: string }; Returns: boolean }
       is_org_owner: { Args: { org_id: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
