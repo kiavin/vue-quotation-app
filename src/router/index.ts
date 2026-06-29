@@ -231,6 +231,16 @@ const router = createRouter({
       ],
     },
     {
+      path: '/public/quotations/:id',
+      name: 'public-quotation',
+      component: () => import('@/pages/public/PublicQuotation.vue'),
+    },
+    {
+      path: '/public/invoices/:id',
+      name: 'public-invoice',
+      component: () => import('@/pages/public/PublicInvoice.vue'),
+    },
+    {
       path: '/:pathMatch(.*)*',
       name: 'NotFound',
       component: () => import('@/pages/NotFound.vue'),
